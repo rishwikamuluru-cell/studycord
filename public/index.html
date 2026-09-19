@@ -3,119 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyCord - Real-Time Collaboration</title>
+    <title>StudyCord - Discord Style Chat</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #313338; color: #dbdee1; display: flex; height: 100vh; overflow: hidden; }
-        
-        /* Sidebar */
-        .sidebar { width: 260px; background-color: #2b2d31; display: flex; flex-direction: column; border-right: 1px solid #1f2023; }
-        .sidebar-header { padding: 20px; font-size: 1.1rem; font-weight: bold; color: #ffffff; border-bottom: 2px solid #1f2023; }
-        .channel-list { padding: 15px; }
-        .channel { padding: 10px; border-radius: 4px; background-color: #404249; color: #ffffff; font-weight: 500; cursor: pointer; }
+        body { background-color: #313338; color: #dbdee1; height: 100vh; display: flex; overflow: hidden; }
 
-        /* Main Chat Area */
+        /* Auth Screen */
+        #auth-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e1f22; display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .auth-box { background: #313338; padding: 30px; border-radius: 8px; width: 380px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; }
+        .auth-box h2 { color: #fff; text-align: center; margin-bottom: 10px; }
+        .auth-box input { background: #1e1f22; border: none; padding: 12px; border-radius: 4px; color: #fff; outline: none; }
+        .auth-box button { background: #5865f2; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .auth-box button:hover { background: #4752c4; }
+        .switch-auth { text-align: center; font-size: 0.85rem; color: #949ba4; cursor: pointer; }
+        .switch-auth span { color: #00a8fc; }
+
+        /* Chat Layout */
+        #app-container { display: none; width: 100%; height: 100%; }
+        .sidebar { width: 260px; background-color: #2b2d31; display: flex; flex-direction: column; border-right: 1px solid #1f2023; }
+        .sidebar-header { padding: 20px; font-size: 1.1rem; font-weight: bold; color: #ffffff; border-bottom: 2px solid #1f2023; display: flex; justify-content: space-between; align-items: center; }
+        .user-tag { font-size: 0.75rem; color: #b5bac1; background: #111214; padding: 4px 8px; border-radius: 4px; }
+        .channel-list { padding: 15px; }
+        .channel { padding: 10px; border-radius: 4px; background-color: #404249; color: #ffffff; font-weight: 500; }
+
         .chat-container { flex: 1; display: flex; flex-direction: column; background-color: #313338; }
-        .chat-header { padding: 20px; background-color: #313338; border-bottom: 1px solid #1f2023; font-weight: bold; color: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        
+        .chat-header { padding: 20px; background-color: #313338; border-bottom: 1px solid #1f2023; font-weight: bold; color: #ffffff; }
         .messages-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         .message { background-color: #2b2d31; padding: 10px 15px; border-radius: 8px; max-width: 80%; word-break: break-word; }
         .message .user { font-weight: bold; color: #5865f2; margin-bottom: 4px; font-size: 0.9rem; }
         .message .text { color: #dbdee1; font-size: 0.95rem; }
 
-        /* Input Form */
         .input-form { padding: 20px; background-color: #313338; display: flex; gap: 10px; }
-        input { background-color: #383a40; border: none; padding: 12px; border-radius: 8px; color: #ffffff; font-size: 0.95rem; outline: none; }
-        #username-input { width: 150px; }
-        #message-input { flex: 1; }
-        button { background-color: #5865f2; color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        button:hover { background-color: #4752c4; }
+        #message-input { flex: 1; background-color: #383a40; border: none; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; }
+        .input-form button { background-color: #5865f2; color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .error-msg { color: #f23f43; font-size: 0.85rem; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-header">StudyCord</div>
-        <div class="channel-list">
-            <div class="channel"># general-study</div>
+    <!-- Auth Overlay -->
+    <div id="auth-container">
+        <div class="auth-box">
+            <h2 id="auth-title">Welcome to StudyCord</h2>
+            <div id="signup-fields" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" id="reg-username" placeholder="Username">
+            </div>
+            <input type="email" id="auth-email" placeholder="Email">
+            <input type="password" id="auth-password" placeholder="Password">
+            <div class="error-msg" id="auth-error"></div>
+            <button id="auth-btn" onclick="handleAuth()">Continue</button>
+            <div class="switch-auth" onclick="toggleAuthMode()">
+                <span id="switch-text">Need an account? Register</span>
+            </div>
         </div>
     </div>
 
-    <div class="chat-container">
-        <div class="chat-header"># general-study</div>
-        
-        <div class="messages-box" id="messagesBox">
-            <!-- Messages will append here -->
+    <!-- Main App -->
+    <div id="app-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                StudyCord
+                <span class="user-tag" id="current-username-display"></span>
+            </div>
+            <div class="channel-list">
+                <div class="channel"># general-study</div>
+            </div>
         </div>
 
-        <form class="input-form" id="chatForm">
-            <input type="text" id="username-input" placeholder="Your Name" required autocomplete="off">
-            <input type="text" id="message-input" placeholder="Message #general-study..." required autocomplete="off">
-            <button type="submit">Send</button>
-        </form>
+        <div class="chat-container">
+            <div class="chat-header"># general-study</div>
+            <div class="messages-box" id="messagesBox"></div>
+
+            <form class="input-form" id="chatForm">
+                <input type="text" id="message-input" placeholder="Message #general-study..." required autocomplete="off">
+                <button type="submit">Send</button>
+            </form>
+        </div>
     </div>
 
-    <!-- Socket.io client script -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        const socket = io();
+        let isLoginMode = true;
+        let currentUser = null;
 
-        const chatForm = document.getElementById('chatForm');
-        const messageInput = document.getElementById('message-input');
-        const usernameInput = document.getElementById('username-input');
-        const messagesBox = document.getElementById('messagesBox');
-
-        // Remember username in local storage so they don't have to retype it
-        const savedUser = localStorage.getItem('studycord_username');
+        // Check if already logged in via browser storage
+        const savedUser = localStorage.getItem('studycord_user');
         if (savedUser) {
-            usernameInput.value = savedUser;
+            currentUser = JSON.parse(savedUser);
+            launchApp();
         }
 
-        usernameInput.addEventListener('input', (e) => {
-            localStorage.setItem('studycord_username', e.target.value);
-        });
-
-        // Helper to display messages on screen
-        function displayMessage(username, text) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message';
-            msgDiv.innerHTML = `
-                <div class="user">${escapeHtml(username)}</div>
-                <div class="text">${escapeHtml(text)}</div>
-            `;
-            messagesBox.appendChild(msgDiv);
-            messagesBox.scrollTop = messagesBox.scrollHeight;
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? 'Welcome Back!' : 'Create an Account';
+            document.getElementById('signup-fields').style.display = isLoginMode ? 'none' : 'flex';
+            document.getElementById('auth-btn').innerText = isLoginMode ? 'Log In' : 'Sign Up';
+            document.getElementById('switch-text').innerText = isLoginMode ? 'Need an account? Register' : 'Already have an account? Log In';
         }
 
-        // Security helper to prevent HTML injection
-        function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        }
+        // Initialize default view to login
+        toggleAuthMode();
 
-        // Load chat history when first connected
-        socket.on('load_history', (messages) => {
-            messagesBox.innerHTML = ''; // clear box
-            messages.forEach((msg) => {
-                displayMessage(msg.username, msg.text);
-            });
-        });
+        async function handleAuth() {
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
+            const username = document.getElementById('reg-username').value.trim();
+            const errorDiv = document.getElementById('auth-error');
 
-        // Listen for real-time messages
-        socket.on('chat_message', (data) => {
-            displayMessage(data.username, data.text);
-        });
+            const endpoint = isLoginMode ? '/api/login' : '/api/signup';
+            const payload = isLoginMode ? { email, password } : { username, email, password };
 
-        // Send message on form submit
-        chatForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const text = messageInput.value.trim();
-            const username = usernameInput.value.trim();
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
 
-            if (text && username) {
-                socket.emit('chat_message', { username, text });
-                messageInput.value = '';
+                if (data.success) {
+                    currentUser = data.user;
+                    localStorage.setItem('studycord_user', JSON.stringify(currentUser));
+                    launchApp();
+                } else {
+                    errorDiv.innerText = data.error || 'Authentication failed';
+                }
+            } catch (err) {
+                errorDiv.innerText = 'Network error. Try again.';
             }
-        });
+        }
+
+        function launchApp() {
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'flex';
+            document.getElementById('current-username-display').innerText = currentUser.username;
+
+            const socket = io();
+            const chatForm = document.getElementById('chatForm');
+            const messageInput = document.getElementById('message-input');
+            const messagesBox = document.getElementById('messagesBox');
+
+            function displayMessage(username, text) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message';
+                msgDiv.innerHTML = `
+                    <div class="user">${escapeHtml(username)}</div>
+                    <div class="text">${escapeHtml(text)}</div>
+                `;
+                messagesBox.appendChild(msgDiv);
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+            }
+
+            function escapeHtml(str) {
+                return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            }
+
+            socket.on('load_history', (messages) => {
+                messagesBox.innerHTML = '';
+                messages.forEach((msg) => displayMessage(msg.username, msg.text));
+            });
+
+            socket.on('chat_message', (data) => {
+                displayMessage(data.username, data.text);
+            });
+
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const text = messageInput.value.trim();
+                if (text && currentUser) {
+                    socket.emit('chat_message', { username: currentUser.username, text });
+                    messageInput.value = '';
+                }
+            });
+        }
     </script>
 </body>
 </html>

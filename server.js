@@ -3,10 +3,14 @@ const http = require('http');
 const express = require('express');
 const { Server } = require('socket.io');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize SQLite Database
 const db = new sqlite3.Database(path.join(__dirname, 'studycord.db'), (err) => {
@@ -14,7 +18,16 @@ const db = new sqlite3.Database(path.join(__dirname, 'studycord.db'), (err) => {
         console.error('Error opening database', err.message);
     } else {
         console.log('Connected to the SQLite database.');
-        // Create messages table if it doesn't exist
+        
+        // Users Table
+        db.run(`CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT,
+            email TEXT UNIQUE,
+            password TEXT
+        )`);
+
+        // Messages Table
         db.run(`CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT,
@@ -24,42 +37,64 @@ const db = new sqlite3.Database(path.join(__dirname, 'studycord.db'), (err) => {
     }
 });
 
-// Serve static files from the 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
+// Authentication Routes
+app.post('/api/signup', async (req, res) => {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
 
-io.on('connection', (socket) => {
-    console.log(`A user connected: ${socket.id}`);
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        db.run(`INSERT INTO users (username, email, password) VALUES (?, ?, ?)`, 
+            [username, email, hashedPassword], 
+            function(err) {
+                if (err) {
+                    return res.status(400).json({ error: 'Email already registered or invalid' });
+                }
+                res.json({ success: true, user: { id: this.lastID, username, email } });
+            }
+        );
+    } catch (e) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
-    // Load past messages from database and send to the newly connected user
-    db.all(`SELECT username, text, timestamp FROM messages ORDER BY id ASC LIMIT 100`, [], (err, rows) => {
-        if (!err) {
-            socket.emit('load_history', rows);
-        } else {
-            console.error('Error loading history:', err.message);
+app.post('/api/login', (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    db.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
+        if (err || !user) {
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
+
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
+    });
+});
+
+// Socket.io Real-time Chat
+io.on('connection', (socket) => {
+    // Load past messages
+    db.all(`SELECT username, text, timestamp FROM messages ORDER BY id ASC LIMIT 100`, [], (err, rows) => {
+        if (!err) socket.emit('load_history', rows);
     });
 
-    // Listen for incoming chat messages
     socket.on('chat_message', (data) => {
         if (!data.text || !data.username) return;
         
-        // Save message to database
-        db.run(`INSERT INTO messages (username, text) VALUES (?, ?)`, [data.username, data.text], function(err) {
+        db.run(`INSERT INTO messages (username, text) VALUES (?, ?)`, [data.username, data.text], (err) => {
             if (!err) {
-                // Broadcast message to everyone including sender
-                io.emit('chat_message', { 
-                    username: data.username, 
-                    text: data.text,
-                    timestamp: new Date().toLocaleTimeString()
-                });
-            } else {
-                console.error('Error saving message:', err.message);
+                io.emit('chat_message', { username: data.username, text: data.text });
             }
         });
-    });
-
-    socket.on('disconnect', () => {
-        console.log(`A user disconnected: ${socket.id}`);
     });
 });
 

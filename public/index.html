@@ -3,80 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyCord - Discord Style Chat</title>
+    <title>StudyCord - Modern Chat</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #313338; color: #dbdee1; height: 100vh; display: flex; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #0c0e12; color: #f3f4f6; height: 100vh; display: flex; overflow: hidden; }
 
-        /* Auth Screen */
-        #auth-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1e1f22; display: flex; justify-content: center; align-items: center; z-index: 100; }
-        .auth-box { background: #313338; padding: 30px; border-radius: 8px; width: 380px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; }
-        .auth-box h2 { color: #fff; text-align: center; margin-bottom: 10px; }
-        .auth-box input { background: #1e1f22; border: none; padding: 12px; border-radius: 4px; color: #fff; outline: none; }
-        .auth-box button { background: #5865f2; color: white; border: none; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .auth-box button:hover { background: #4752c4; }
-        .switch-auth { text-align: center; font-size: 0.85rem; color: #949ba4; cursor: pointer; }
-        .switch-auth span { color: #00a8fc; }
+        /* Auth Screen (Instagram/WhatsApp Sleek Glassmorphism Card) */
+        #auth-container { position: fixed; inset: 0; background: radial-gradient(circle at center, #1e293b 0%, #0c0e12 100%); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .auth-box { background: rgba(26, 29, 36, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); padding: 40px 35px; border-radius: 20px; width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 18px; }
+        .auth-box h2 { color: #fff; text-align: center; font-size: 1.8rem; font-weight: 700; background: linear-gradient(45deg, #8b5cf6, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .auth-box p { color: #9ca3af; font-size: 0.9rem; text-align: center; margin-top: -10px; margin-bottom: 5px; }
+        .auth-box input { background: #12141c; border: 1px solid #2d3748; padding: 14px; border-radius: 12px; color: #fff; outline: none; transition: 0.2s; font-size: 0.95rem; }
+        .auth-box input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2); }
+        .auth-box button { background: linear-gradient(135deg, #7c3aed, #db2777); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+        .auth-box button:hover { opacity: 0.9; transform: translateY(-1px); }
+        .switch-auth { text-align: center; font-size: 0.9rem; color: #9ca3af; cursor: pointer; }
+        .switch-auth span { color: #a78bfa; font-weight: 500; }
+        .forgot-link { text-align: right; font-size: 0.85rem; color: #a78bfa; cursor: pointer; margin-top: -6px; }
+        .forgot-link:hover { text-decoration: underline; }
 
-        /* Chat Layout */
+        /* Main Chat Layout (WhatsApp/Instagram Desktop hybrid) */
         #app-container { display: none; width: 100%; height: 100%; }
-        .sidebar { width: 260px; background-color: #2b2d31; display: flex; flex-direction: column; border-right: 1px solid #1f2023; }
-        .sidebar-header { padding: 20px; font-size: 1.1rem; font-weight: bold; color: #ffffff; border-bottom: 2px solid #1f2023; display: flex; justify-content: space-between; align-items: center; }
-        .user-tag { font-size: 0.75rem; color: #b5bac1; background: #111214; padding: 4px 8px; border-radius: 4px; }
         
-        .channel-section-header { padding: 15px 15px 5px 15px; font-size: 0.75rem; font-weight: bold; color: #949ba4; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; }
-        .add-channel-btn { background: none; border: none; color: #949ba4; cursor: pointer; font-size: 1rem; font-weight: bold; }
-        .add-channel-btn:hover { color: #fff; }
+        .sidebar { width: 300px; background-color: #12141c; display: flex; flex-direction: column; border-right: 1px solid #1f2430; }
+        .sidebar-header { padding: 22px 20px; font-size: 1.25rem; font-weight: 700; color: #ffffff; border-bottom: 1px solid #1f2430; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
+        .user-tag { font-size: 0.75rem; color: #cbd5e1; background: #1e2230; padding: 5px 10px; border-radius: 20px; font-weight: 500; border: 1px solid #2d3748; }
 
-        .channel-list { padding: 5px 10px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .channel { padding: 8px 10px; border-radius: 4px; color: #949ba4; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        .channel:hover { background-color: #35373c; color: #dbdee1; }
-        .channel.active { background-color: #404249; color: #ffffff; }
+        .channel-section-header { padding: 20px 20px 8px 20px; font-size: 0.75rem; font-weight: 700; color: #6b7280; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 1px; }
+        .add-channel-btn { background: #1e2230; border: none; color: #a78bfa; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .add-channel-btn:hover { background: #7c3aed; color: #fff; }
 
-        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: #313338; }
-        .chat-header { padding: 20px; background-color: #313338; border-bottom: 1px solid #1f2023; font-weight: bold; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
-        .logout-btn { background: #f23f43; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-        .logout-btn:hover { background: #d83c3e; }
+        .channel-list { padding: 8px 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+        .channel { padding: 12px 14px; border-radius: 12px; color: #9ca3af; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .channel:hover { background-color: #1a1d26; color: #e5e7eb; }
+        .channel.active { background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(219, 39, 119, 0.15)); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
 
-        .messages-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .message { background-color: #2b2d31; padding: 10px 15px; border-radius: 8px; max-width: 80%; word-break: break-word; }
-        .message-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-        .message .user { font-weight: bold; color: #5865f2; font-size: 0.9rem; }
-        .message .time { font-size: 0.7rem; color: #949ba4; }
-        .message .text { color: #dbdee1; font-size: 0.95rem; margin-bottom: 5px; }
-        .message img, .message a { max-width: 100%; border-radius: 4px; margin-top: 5px; display: block; color: #00a8fc; text-decoration: none; }
+        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: #0c0e12; }
+        .chat-header { padding: 18px 24px; background-color: #12141c; border-bottom: 1px solid #1f2430; font-weight: 600; font-size: 1.1rem; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
+        .logout-btn { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 7px 14px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+        .logout-btn:hover { background: #ef4444; color: white; }
+
+        /* Messages Feed (WhatsApp style rounded chat bubbles) */
+        .messages-box { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth; }
+        .message { background-color: #1a1d26; padding: 12px 16px; border-radius: 16px; max-width: 65%; word-break: break-word; border: 1px solid rgba(255,255,255,0.04); box-shadow: 0 4px 12px rgba(0,0,0,0.2); animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .message-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 15px; }
+        .message .user { font-weight: 600; color: #a78bfa; font-size: 0.88rem; }
+        .message .time { font-size: 0.7rem; color: #6b7280; }
+        .message .text { color: #e5e7eb; font-size: 0.95rem; line-height: 1.4; }
+        .message img { max-width: 100%; border-radius: 10px; margin-top: 8px; display: block; border: 1px solid rgba(255,255,255,0.1); }
+        .message a { color: #38bdf8; text-decoration: none; display: inline-block; margin-top: 6px; font-size: 0.9rem; }
         .message a:hover { text-decoration: underline; }
 
-        .input-form { padding: 20px; background-color: #313338; display: flex; gap: 10px; align-items: center; }
-        .file-upload-label { background-color: #4e5058; color: white; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .file-upload-label:hover { background-color: #6d6f78; }
+        /* Modern Floating Input Bar */
+        .input-form { padding: 20px 24px; background-color: #12141c; display: flex; gap: 12px; align-items: center; border-top: 1px solid #1f2430; }
+        .file-upload-label { background-color: #1e2230; color: #9ca3af; width: 44px; height: 44px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid #2d3748; transition: 0.2s; }
+        .file-upload-label:hover { background-color: #7c3aed; color: white; border-color: transparent; }
         #file-input { display: none; }
-        #message-input { flex: 1; background-color: #383a40; border: none; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; }
-        .input-form button[type="submit"] { background-color: #5865f2; color: white; border: none; padding: 0 20px; height: 43px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .input-form button[type="submit"]:hover { background-color: #4752c4; }
-        .error-msg { color: #f23f43; font-size: 0.85rem; text-align: center; }
+        #message-input { flex: 1; background-color: #181b24; border: 1px solid #2d3748; padding: 12px 18px; border-radius: 12px; color: #ffffff; outline: none; font-size: 0.95rem; transition: 0.2s; }
+        #message-input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15); }
+        .input-form button[type="submit"] { background: linear-gradient(135deg, #7c3aed, #db2777); color: white; border: none; padding: 0 24px; height: 46px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .input-form button[type="submit"]:hover { opacity: 0.9; transform: scale(1.02); }
+
+        .error-msg { color: #f87171; font-size: 0.85rem; text-align: center; }
+        .success-msg { color: #4ade80; font-size: 0.85rem; text-align: center; }
     </style>
 </head>
 <body>
 
-    <!-- Auth Overlay -->
+    <!-- Auth / Reset Overlay -->
     <div id="auth-container">
         <div class="auth-box">
-            <h2 id="auth-title">Welcome to StudyCord</h2>
-            <div id="signup-fields" style="display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" id="reg-username" placeholder="Username">
+            <h2 id="auth-title">StudyCord</h2>
+            <p id="auth-subtitle">Connect and study with peers globally</p>
+            
+            <div id="form-fields" style="display: flex; flex-direction: column; gap: 14px;">
+                <input type="text" id="reg-username" placeholder="Full Name / Username" style="display: none;">
+                <input type="email" id="auth-email" placeholder="Email address">
+                <input type="password" id="auth-password" placeholder="Password">
+                <div class="forgot-link" id="forgot-password-trigger" onclick="showForgotPassword()">Forgot password?</div>
             </div>
-            <input type="email" id="auth-email" placeholder="Email">
-            <input type="password" id="auth-password" placeholder="Password">
+
             <div class="error-msg" id="auth-error"></div>
-            <button id="auth-btn" onclick="handleAuth()">Continue</button>
+            <div class="success-msg" id="auth-success"></div>
+            
+            <button id="auth-btn" onclick="handleAuth()">Log In</button>
             <div class="switch-auth" onclick="toggleAuthMode()">
-                <span id="switch-text">Need an account? Register</span>
+                <span id="switch-text">Don't have an account? Sign up</span>
             </div>
         </div>
     </div>
 
-    <!-- Main App -->
+    <!-- Main App Layout -->
     <div id="app-container">
         <div class="sidebar">
             <div class="sidebar-header">
@@ -84,23 +103,23 @@
                 <span class="user-tag" id="current-username-display"></span>
             </div>
             <div class="channel-section-header">
-                <span>Text Channels</span>
-                <button class="add-channel-btn" onclick="createNewChannel()" title="Add Channel">+</button>
+                <span>Channels</span>
+                <button class="add-channel-btn" onclick="createNewChannel()" title="Create Channel">+</button>
             </div>
             <div class="channel-list" id="channelList"></div>
         </div>
 
         <div class="chat-container">
             <div class="chat-header">
-                <span id="current-channel-title"># general-study</span>
+                <span id="current-channel-title"># general-chat</span>
                 <button class="logout-btn" onclick="logout()">Log Out</button>
             </div>
             <div class="messages-box" id="messagesBox"></div>
 
             <form class="input-form" id="chatForm">
-                <label for="file-input" class="file-upload-label" title="Attach File">📎</label>
+                <label for="file-input" class="file-upload-label" title="Attach File/Image">📎</label>
                 <input type="file" id="file-input">
-                <input type="text" id="message-input" placeholder="Message #general-study..." autocomplete="off">
+                <input type="text" id="message-input" placeholder="Message #general-chat..." autocomplete="off">
                 <button type="submit">Send</button>
             </form>
         </div>
@@ -108,11 +127,12 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        let isLoginMode = true;
+        let authState = 'login';
         let currentUser = null;
-        let currentChannel = 'general-study';
+        let currentChannel = 'general-chat';
         let socket = null;
         let selectedFile = null;
+        let resetEmailTarget = '';
 
         const savedUser = localStorage.getItem('studycord_user');
         if (savedUser) {
@@ -121,41 +141,115 @@
         }
 
         function toggleAuthMode() {
-            isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? 'Welcome Back!' : 'Create an Account';
-            document.getElementById('signup-fields').style.display = isLoginMode ? 'none' : 'flex';
-            document.getElementById('auth-btn').innerText = isLoginMode ? 'Log In' : 'Sign Up';
-            document.getElementById('switch-text').innerText = isLoginMode ? 'Need an account? Register' : 'Already have an account? Log In';
+            document.getElementById('auth-error').innerText = '';
+            document.getElementById('auth-success').innerText = '';
+
+            if (authState === 'login') {
+                authState = 'signup';
+                document.getElementById('auth-title').innerText = 'Create Account';
+                document.getElementById('auth-subtitle').innerText = 'Join the study community';
+                document.getElementById('reg-username').style.display = 'block';
+                document.getElementById('forgot-password-trigger').style.display = 'none';
+                document.getElementById('auth-btn').innerText = 'Sign Up';
+                document.getElementById('switch-text').innerText = 'Already have an account? Log in';
+            } else {
+                authState = 'login';
+                document.getElementById('auth-title').innerText = 'StudyCord';
+                document.getElementById('auth-subtitle').innerText = 'Connect and study with peers globally';
+                document.getElementById('reg-username').style.display = 'none';
+                document.getElementById('auth-password').style.display = 'block';
+                document.getElementById('forgot-password-trigger').style.display = 'block';
+                document.getElementById('auth-btn').innerText = 'Log In';
+                document.getElementById('switch-text').innerText = "Don't have an account? Sign up";
+            }
         }
 
-        toggleAuthMode();
+        function showForgotPassword() {
+            authState = 'forgot';
+            document.getElementById('auth-title').innerText = 'Reset Password';
+            document.getElementById('auth-subtitle').innerText = 'Enter your email for verification code';
+            document.getElementById('reg-username').style.display = 'none';
+            document.getElementById('auth-password').style.display = 'none';
+            document.getElementById('forgot-password-trigger').style.display = 'none';
+            document.getElementById('auth-btn').innerText = 'Send Code';
+            document.getElementById('switch-text').innerText = 'Back to Login';
+        }
 
         async function handleAuth() {
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value.trim();
             const username = document.getElementById('reg-username').value.trim();
             const errorDiv = document.getElementById('auth-error');
+            const successDiv = document.getElementById('auth-success');
+            
+            errorDiv.innerText = '';
+            successDiv.innerText = '';
 
-            const endpoint = isLoginMode ? '/api/login' : '/api/signup';
-            const payload = isLoginMode ? { email, password } : { username, email, password };
-
-            try {
-                const res = await fetch(endpoint, {
+            if (authState === 'forgot') {
+                if (!email) { errorDiv.innerText = 'Please enter your email'; return; }
+                const res = await fetch('/api/forgot-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ email })
                 });
                 const data = await res.json();
-
                 if (data.success) {
-                    currentUser = data.user;
-                    localStorage.setItem('studycord_user', JSON.stringify(currentUser));
-                    launchApp();
-                } else {
-                    errorDiv.innerText = data.error || 'Authentication failed';
-                }
-            } catch (err) {
-                errorDiv.innerText = 'Network error. Try again.';
+                    resetEmailTarget = email;
+                    authState = 'reset';
+                    document.getElementById('auth-title').innerText = 'Enter Code';
+                    document.getElementById('auth-subtitle').innerText = 'Check your email for the 6-digit code';
+                    document.getElementById('auth-email').style.display = 'none';
+                    document.getElementById('auth-password').style.display = 'block';
+                    document.getElementById('auth-password').placeholder = '6-Digit Code';
+                    
+                    let newPassInput = document.getElementById('new-password');
+                    if (!newPassInput) {
+                        newPassInput = document.createElement('input');
+                        newPassInput.type = 'password';
+                        newPassInput.id = 'new-password';
+                        newPassInput.placeholder = 'New Password';
+                        document.getElementById('form-fields').appendChild(newPassInput);
+                    } else {
+                        newPassInput.style.display = 'block';
+                    }
+                    document.getElementById('auth-btn').innerText = 'Update Password';
+                    successDiv.innerText = data.message;
+                } else { errorDiv.innerText = data.error; }
+                return;
+            }
+
+            if (authState === 'reset') {
+                const code = password;
+                const newPassword = document.getElementById('new-password').value.trim();
+                const res = await fetch('/api/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: resetEmailTarget, code, newPassword })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Password successfully reset! Please log in.');
+                    location.reload();
+                } else { errorDiv.innerText = data.error; }
+                return;
+            }
+
+            const endpoint = authState === 'login' ? '/api/login' : '/api/signup';
+            const payload = authState === 'login' ? { email, password } : { username, email, password };
+
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                currentUser = data.user;
+                localStorage.setItem('studycord_user', JSON.stringify(currentUser));
+                launchApp();
+            } else {
+                errorDiv.innerText = data.error || 'Authentication failed';
             }
         }
 
@@ -165,10 +259,8 @@
         }
 
         function createNewChannel() {
-            const channelName = prompt("Enter new channel/topic name:");
-            if (channelName && socket) {
-                socket.emit('create_channel', channelName.trim());
-            }
+            const name = prompt("Enter new channel name:");
+            if (name && socket) socket.emit('create_channel', name.trim());
         }
 
         function launchApp() {
@@ -187,7 +279,7 @@
                 const file = e.target.files[0];
                 if (file) {
                     selectedFile = file;
-                    messageInput.placeholder = `Attached: ${file.name} (Ready to send)`;
+                    messageInput.placeholder = `Attached: ${file.name}`;
                 }
             });
 
@@ -197,30 +289,22 @@
                     const div = document.createElement('div');
                     div.className = `channel ${ch === currentChannel ? 'active' : ''}`;
                     div.innerText = `# ${ch}`;
-                    div.onclick = () => switchChannel(ch);
+                    div.onclick = () => {
+                        currentChannel = ch;
+                        document.getElementById('current-channel-title').innerText = `# ${ch}`;
+                        messageInput.placeholder = `Message #${ch}...`;
+                        document.querySelectorAll('.channel').forEach(el => el.classList.toggle('active', el.innerText === `# ${ch}`));
+                        socket.emit('join_channel', currentChannel);
+                    };
                     channelList.appendChild(div);
                 });
             });
 
-            function switchChannel(ch) {
-                currentChannel = ch;
-                document.getElementById('current-channel-title').innerText = `# ${ch}`;
-                messageInput.placeholder = `Message #${ch}...`;
-                
-                // Highlight active channel in UI
-                document.querySelectorAll('.channel').forEach(el => {
-                    el.classList.toggle('active', el.innerText === `# ${ch}`);
-                });
-
-                socket.emit('join_channel', currentChannel);
-            }
-
-            // Initial join
             socket.emit('join_channel', currentChannel);
 
             socket.on('load_history', (messages) => {
                 messagesBox.innerHTML = '';
-                messages.forEach((msg) => displayMessage(msg));
+                messages.forEach(msg => displayMessage(msg));
             });
 
             socket.on('chat_message', (msg) => {
@@ -236,7 +320,7 @@
                     if (msg.file.type.startsWith('image/')) {
                         fileHtml = `<img src="${msg.file.data}" alt="${escapeHtml(msg.file.name)}">`;
                     } else {
-                        fileHtml = `<a href="${msg.file.data}" download="${escapeHtml(msg.file.name)}">📎 Download ${escapeHtml(msg.file.name)}</a>`;
+                        fileHtml = `<a href="${msg.file.data}" download="${escapeHtml(msg.file.name)}">📁 Download ${escapeHtml(msg.file.name)}</a>`;
                     }
                 }
 
@@ -262,17 +346,11 @@
                 const text = messageInput.value.trim();
                 if (!text && !selectedFile) return;
 
-                let fileData = null;
                 if (selectedFile) {
                     const reader = new FileReader();
                     reader.readAsDataURL(selectedFile);
                     reader.onload = () => {
-                        fileData = {
-                            name: selectedFile.name,
-                            type: selectedFile.type,
-                            data: reader.result
-                        };
-                        emitMessage(text, fileData);
+                        emitMessage(text, { name: selectedFile.name, type: selectedFile.type, data: reader.result });
                     };
                 } else {
                     emitMessage(text, null);

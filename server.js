@@ -32,7 +32,7 @@ function saveData(file, data) {
 }
 
 if (!fs.existsSync(USERS_FILE)) saveData(USERS_FILE, []);
-if (!fs.existsSync(CHANNELS_FILE)) saveData(CHANNELS_FILE, ['general-chat', 'development', 'memes-media']);
+if (!fs.existsSync(CHANNELS_FILE)) saveData(CHANNELS_FILE, ['general-chat', 'development', 'study-hall']);
 if (!fs.existsSync(MESSAGES_FILE)) saveData(MESSAGES_FILE, {});
 
 const transporter = nodemailer.createTransport({

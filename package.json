@@ -1,7 +1,7 @@
 {
   "name": "studycord",
   "version": "1.0.0",
-  "description": "Discord style chat app with authentication and file storage",
+  "description": "Discord style chat app with channels and file sharing",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

@@ -23,24 +23,37 @@
         .sidebar { width: 260px; background-color: #2b2d31; display: flex; flex-direction: column; border-right: 1px solid #1f2023; }
         .sidebar-header { padding: 20px; font-size: 1.1rem; font-weight: bold; color: #ffffff; border-bottom: 2px solid #1f2023; display: flex; justify-content: space-between; align-items: center; }
         .user-tag { font-size: 0.75rem; color: #b5bac1; background: #111214; padding: 4px 8px; border-radius: 4px; }
-        .channel-list { padding: 15px; }
-        .channel { padding: 10px; border-radius: 4px; background-color: #404249; color: #ffffff; font-weight: 500; }
+        
+        .channel-section-header { padding: 15px 15px 5px 15px; font-size: 0.75rem; font-weight: bold; color: #949ba4; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; }
+        .add-channel-btn { background: none; border: none; color: #949ba4; cursor: pointer; font-size: 1rem; font-weight: bold; }
+        .add-channel-btn:hover { color: #fff; }
+
+        .channel-list { padding: 5px 10px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+        .channel { padding: 8px 10px; border-radius: 4px; color: #949ba4; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .channel:hover { background-color: #35373c; color: #dbdee1; }
+        .channel.active { background-color: #404249; color: #ffffff; }
 
         .chat-container { flex: 1; display: flex; flex-direction: column; background-color: #313338; }
         .chat-header { padding: 20px; background-color: #313338; border-bottom: 1px solid #1f2023; font-weight: bold; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
         .logout-btn { background: #f23f43; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
         .logout-btn:hover { background: #d83c3e; }
-        
+
         .messages-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         .message { background-color: #2b2d31; padding: 10px 15px; border-radius: 8px; max-width: 80%; word-break: break-word; }
         .message-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
         .message .user { font-weight: bold; color: #5865f2; font-size: 0.9rem; }
         .message .time { font-size: 0.7rem; color: #949ba4; }
-        .message .text { color: #dbdee1; font-size: 0.95rem; }
+        .message .text { color: #dbdee1; font-size: 0.95rem; margin-bottom: 5px; }
+        .message img, .message a { max-width: 100%; border-radius: 4px; margin-top: 5px; display: block; color: #00a8fc; text-decoration: none; }
+        .message a:hover { text-decoration: underline; }
 
-        .input-form { padding: 20px; background-color: #313338; display: flex; gap: 10px; }
+        .input-form { padding: 20px; background-color: #313338; display: flex; gap: 10px; align-items: center; }
+        .file-upload-label { background-color: #4e5058; color: white; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .file-upload-label:hover { background-color: #6d6f78; }
+        #file-input { display: none; }
         #message-input { flex: 1; background-color: #383a40; border: none; padding: 12px; border-radius: 8px; color: #ffffff; outline: none; }
-        .input-form button { background-color: #5865f2; color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .input-form button[type="submit"] { background-color: #5865f2; color: white; border: none; padding: 0 20px; height: 43px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .input-form button[type="submit"]:hover { background-color: #4752c4; }
         .error-msg { color: #f23f43; font-size: 0.85rem; text-align: center; }
     </style>
 </head>
@@ -70,20 +83,24 @@
                 StudyCord
                 <span class="user-tag" id="current-username-display"></span>
             </div>
-            <div class="channel-list">
-                <div class="channel"># general-study</div>
+            <div class="channel-section-header">
+                <span>Text Channels</span>
+                <button class="add-channel-btn" onclick="createNewChannel()" title="Add Channel">+</button>
             </div>
+            <div class="channel-list" id="channelList"></div>
         </div>
 
         <div class="chat-container">
             <div class="chat-header">
-                <span># general-study</span>
+                <span id="current-channel-title"># general-study</span>
                 <button class="logout-btn" onclick="logout()">Log Out</button>
             </div>
             <div class="messages-box" id="messagesBox"></div>
 
             <form class="input-form" id="chatForm">
-                <input type="text" id="message-input" placeholder="Message #general-study..." required autocomplete="off">
+                <label for="file-input" class="file-upload-label" title="Attach File">📎</label>
+                <input type="file" id="file-input">
+                <input type="text" id="message-input" placeholder="Message #general-study..." autocomplete="off">
                 <button type="submit">Send</button>
             </form>
         </div>
@@ -93,6 +110,9 @@
     <script>
         let isLoginMode = true;
         let currentUser = null;
+        let currentChannel = 'general-study';
+        let socket = null;
+        let selectedFile = null;
 
         const savedUser = localStorage.getItem('studycord_user');
         if (savedUser) {
@@ -144,51 +164,133 @@
             location.reload();
         }
 
+        function createNewChannel() {
+            const channelName = prompt("Enter new channel/topic name:");
+            if (channelName && socket) {
+                socket.emit('create_channel', channelName.trim());
+            }
+        }
+
         function launchApp() {
             document.getElementById('auth-container').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
             document.getElementById('current-username-display').innerText = currentUser.username;
 
-            const socket = io();
+            socket = io();
             const chatForm = document.getElementById('chatForm');
             const messageInput = document.getElementById('message-input');
             const messagesBox = document.getElementById('messagesBox');
+            const fileInput = document.getElementById('file-input');
+            const channelList = document.getElementById('channelList');
 
-            function displayMessage(msg) {
-                const msgDiv = document.createElement('div');
-                msgDiv.className = 'message';
-                msgDiv.innerHTML = `
-                    <div class="message-header">
-                        <span class="user">${escapeHtml(msg.username)}</span>
-                        <span class="time">${escapeHtml(msg.time || msg.timestamp || '')}</span>
-                    </div>
-                    <div class="text">${escapeHtml(msg.text)}</div>
-                `;
-                messagesBox.appendChild(msgDiv);
-                messagesBox.scrollTop = messagesBox.scrollHeight;
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    selectedFile = file;
+                    messageInput.placeholder = `Attached: ${file.name} (Ready to send)`;
+                }
+            });
+
+            socket.on('load_channels', (channels) => {
+                channelList.innerHTML = '';
+                channels.forEach(ch => {
+                    const div = document.createElement('div');
+                    div.className = `channel ${ch === currentChannel ? 'active' : ''}`;
+                    div.innerText = `# ${ch}`;
+                    div.onclick = () => switchChannel(ch);
+                    channelList.appendChild(div);
+                });
+            });
+
+            function switchChannel(ch) {
+                currentChannel = ch;
+                document.getElementById('current-channel-title').innerText = `# ${ch}`;
+                messageInput.placeholder = `Message #${ch}...`;
+                
+                // Highlight active channel in UI
+                document.querySelectorAll('.channel').forEach(el => {
+                    el.classList.toggle('active', el.innerText === `# ${ch}`);
+                });
+
+                socket.emit('join_channel', currentChannel);
             }
 
-            function escapeHtml(str) {
-                return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-            }
+            // Initial join
+            socket.emit('join_channel', currentChannel);
 
             socket.on('load_history', (messages) => {
                 messagesBox.innerHTML = '';
                 messages.forEach((msg) => displayMessage(msg));
             });
 
-            socket.on('chat_message', (data) => {
-                displayMessage(data);
+            socket.on('chat_message', (msg) => {
+                displayMessage(msg);
             });
 
-            chatForm.addEventListener('submit', (e) => {
+            function displayMessage(msg) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message';
+                
+                let fileHtml = '';
+                if (msg.file) {
+                    if (msg.file.type.startsWith('image/')) {
+                        fileHtml = `<img src="${msg.file.data}" alt="${escapeHtml(msg.file.name)}">`;
+                    } else {
+                        fileHtml = `<a href="${msg.file.data}" download="${escapeHtml(msg.file.name)}">📎 Download ${escapeHtml(msg.file.name)}</a>`;
+                    }
+                }
+
+                msgDiv.innerHTML = `
+                    <div class="message-header">
+                        <span class="user">${escapeHtml(msg.username)}</span>
+                        <span class="time">${escapeHtml(msg.timestamp || '')}</span>
+                    </div>
+                    <div class="text">${escapeHtml(msg.text)}</div>
+                    ${fileHtml}
+                `;
+                messagesBox.appendChild(msgDiv);
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            }
+
+            chatForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const text = messageInput.value.trim();
-                if (text && currentUser) {
-                    socket.emit('chat_message', { username: currentUser.username, text });
-                    messageInput.value = '';
+                if (!text && !selectedFile) return;
+
+                let fileData = null;
+                if (selectedFile) {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(selectedFile);
+                    reader.onload = () => {
+                        fileData = {
+                            name: selectedFile.name,
+                            type: selectedFile.type,
+                            data: reader.result
+                        };
+                        emitMessage(text, fileData);
+                    };
+                } else {
+                    emitMessage(text, null);
                 }
             });
+
+            function emitMessage(text, file) {
+                socket.emit('chat_message', {
+                    channel: currentChannel,
+                    username: currentUser.username,
+                    text,
+                    file
+                });
+                messageInput.value = '';
+                fileInput.value = '';
+                selectedFile = null;
+                messageInput.placeholder = `Message #${currentChannel}...`;
+            }
         }
     </script>
 </body>

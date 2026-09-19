@@ -9,6 +9,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Use Express built-in JSON middleware (No body-parser needed!)
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 

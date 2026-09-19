@@ -1,8 +1,8 @@
-const sqlite3 = require('sqlite3').verbose();
 const http = require('http');
 const express = require('express');
 const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 const bcrypt = require('bcryptjs');
 
 const app = express();
@@ -12,30 +12,22 @@ const io = new Server(server);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Initialize SQLite Database
-const db = new sqlite3.Database(path.join(__dirname, 'studycord.db'), (err) => {
-    if (err) {
-        console.error('Error opening database', err.message);
-    } else {
-        console.log('Connected to the SQLite database.');
-        
-        // Users Table
-        db.run(`CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
-            email TEXT UNIQUE,
-            password TEXT
-        )`);
+// JSON File Database Helpers
+const USERS_FILE = path.join(__dirname, 'users.json');
+const MESSAGES_FILE = path.join(__dirname, 'messages.json');
 
-        // Messages Table
-        db.run(`CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
-            text TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
+function loadData(file) {
+    if (!fs.existsSync(file)) return [];
+    try {
+        return JSON.parse(fs.readFileSync(file, 'utf8'));
+    } catch (e) {
+        return [];
     }
-});
+}
+
+function saveData(file, data) {
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+}
 
 // Authentication Routes
 app.post('/api/signup', async (req, res) => {
@@ -44,57 +36,57 @@ app.post('/api/signup', async (req, res) => {
         return res.status(400).json({ error: 'All fields are required' });
     }
 
+    let users = loadData(USERS_FILE);
+    if (users.find(u => u.email === email)) {
+        return res.status(400).json({ error: 'Email already registered' });
+    }
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        db.run(`INSERT INTO users (username, email, password) VALUES (?, ?, ?)`, 
-            [username, email, hashedPassword], 
-            function(err) {
-                if (err) {
-                    return res.status(400).json({ error: 'Email already registered or invalid' });
-                }
-                res.json({ success: true, user: { id: this.lastID, username, email } });
-            }
-        );
+        const newUser = { id: Date.now(), username, email, password: hashedPassword };
+        users.push(newUser);
+        saveData(USERS_FILE, users);
+
+        res.json({ success: true, user: { id: newUser.id, username, email } });
     } catch (e) {
         res.status(500).json({ error: 'Server error' });
     }
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
         return res.status(400).json({ error: 'All fields are required' });
     }
 
-    db.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
-        if (err || !user) {
-            return res.status(401).json({ error: 'Invalid email or password' });
-        }
+    let users = loadData(USERS_FILE);
+    const user = users.find(u => u.email === email);
+    if (!user) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+    }
 
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return res.status(401).json({ error: 'Invalid email or password' });
-        }
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+        return res.status(401).json({ error: 'Invalid email or password' });
+    }
 
-        res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
-    });
+    res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
 });
 
 // Socket.io Real-time Chat
 io.on('connection', (socket) => {
-    // Load past messages
-    db.all(`SELECT username, text, timestamp FROM messages ORDER BY id ASC LIMIT 100`, [], (err, rows) => {
-        if (!err) socket.emit('load_history', rows);
-    });
+    let messages = loadData(MESSAGES_FILE);
+    socket.emit('load_history', messages.slice(-100));
 
     socket.on('chat_message', (data) => {
         if (!data.text || !data.username) return;
-        
-        db.run(`INSERT INTO messages (username, text) VALUES (?, ?)`, [data.username, data.text], (err) => {
-            if (!err) {
-                io.emit('chat_message', { username: data.username, text: data.text });
-            }
-        });
+
+        let messages = loadData(MESSAGES_FILE);
+        const newMsg = { username: data.username, text: data.text, timestamp: new Date().toLocaleTimeString() };
+        messages.push(newMsg);
+        saveData(MESSAGES_FILE, messages);
+
+        io.emit('chat_message', newMsg);
     });
 });
 

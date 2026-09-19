@@ -86,7 +86,6 @@
         let isLoginMode = true;
         let currentUser = null;
 
-        // Check if already logged in via browser storage
         const savedUser = localStorage.getItem('studycord_user');
         if (savedUser) {
             currentUser = JSON.parse(savedUser);
@@ -101,7 +100,6 @@
             document.getElementById('switch-text').innerText = isLoginMode ? 'Need an account? Register' : 'Already have an account? Log In';
         }
 
-        // Initialize default view to login
         toggleAuthMode();
 
         async function handleAuth() {

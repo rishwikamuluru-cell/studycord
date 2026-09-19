@@ -9,14 +9,15 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Use Express built-in JSON middleware (No body-parser needed!)
+// Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// JSON File Database Helpers
+// JSON File Database Paths
 const USERS_FILE = path.join(__dirname, 'users.json');
 const MESSAGES_FILE = path.join(__dirname, 'messages.json');
 
+// Helper functions to read/write JSON storage safely
 function loadData(file) {
     if (!fs.existsSync(file)) return [];
     try {
@@ -30,7 +31,11 @@ function saveData(file, data) {
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
-// Authentication Routes
+// Ensure storage files exist on startup
+if (!fs.existsSync(USERS_FILE)) saveData(USERS_FILE, []);
+if (!fs.existsSync(MESSAGES_FILE)) saveData(MESSAGES_FILE, []);
+
+// Authentication: Sign Up Route
 app.post('/api/signup', async (req, res) => {
     const { username, email, password } = req.body;
     if (!username || !email || !password) {
@@ -50,10 +55,11 @@ app.post('/api/signup', async (req, res) => {
 
         res.json({ success: true, user: { id: newUser.id, username, email } });
     } catch (e) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Server error during registration' });
     }
 });
 
+// Authentication: Login Route
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -74,16 +80,23 @@ app.post('/api/login', async (req, res) => {
     res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
 });
 
-// Socket.io Real-time Chat
+// Socket.io Real-time Chat & History
 io.on('connection', (socket) => {
+    // Send recent history upon connection
     let messages = loadData(MESSAGES_FILE);
     socket.emit('load_history', messages.slice(-100));
 
+    // Handle incoming chat messages
     socket.on('chat_message', (data) => {
         if (!data.text || !data.username) return;
 
         let messages = loadData(MESSAGES_FILE);
-        const newMsg = { username: data.username, text: data.text, timestamp: new Date().toLocaleTimeString() };
+        const newMsg = { 
+            username: data.username, 
+            text: data.text, 
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+        };
+        
         messages.push(newMsg);
         saveData(MESSAGES_FILE, messages);
 
@@ -93,5 +106,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`StudyCord server running on port ${PORT}`);
 });

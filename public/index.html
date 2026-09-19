@@ -27,10 +27,15 @@
         .channel { padding: 10px; border-radius: 4px; background-color: #404249; color: #ffffff; font-weight: 500; }
 
         .chat-container { flex: 1; display: flex; flex-direction: column; background-color: #313338; }
-        .chat-header { padding: 20px; background-color: #313338; border-bottom: 1px solid #1f2023; font-weight: bold; color: #ffffff; }
+        .chat-header { padding: 20px; background-color: #313338; border-bottom: 1px solid #1f2023; font-weight: bold; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
+        .logout-btn { background: #f23f43; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        .logout-btn:hover { background: #d83c3e; }
+        
         .messages-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         .message { background-color: #2b2d31; padding: 10px 15px; border-radius: 8px; max-width: 80%; word-break: break-word; }
-        .message .user { font-weight: bold; color: #5865f2; margin-bottom: 4px; font-size: 0.9rem; }
+        .message-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+        .message .user { font-weight: bold; color: #5865f2; font-size: 0.9rem; }
+        .message .time { font-size: 0.7rem; color: #949ba4; }
         .message .text { color: #dbdee1; font-size: 0.95rem; }
 
         .input-form { padding: 20px; background-color: #313338; display: flex; gap: 10px; }
@@ -71,7 +76,10 @@
         </div>
 
         <div class="chat-container">
-            <div class="chat-header"># general-study</div>
+            <div class="chat-header">
+                <span># general-study</span>
+                <button class="logout-btn" onclick="logout()">Log Out</button>
+            </div>
             <div class="messages-box" id="messagesBox"></div>
 
             <form class="input-form" id="chatForm">
@@ -131,6 +139,11 @@
             }
         }
 
+        function logout() {
+            localStorage.removeItem('studycord_user');
+            location.reload();
+        }
+
         function launchApp() {
             document.getElementById('auth-container').style.display = 'none';
             document.getElementById('app-container').style.display = 'flex';
@@ -141,12 +154,15 @@
             const messageInput = document.getElementById('message-input');
             const messagesBox = document.getElementById('messagesBox');
 
-            function displayMessage(username, text) {
+            function displayMessage(msg) {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = 'message';
                 msgDiv.innerHTML = `
-                    <div class="user">${escapeHtml(username)}</div>
-                    <div class="text">${escapeHtml(text)}</div>
+                    <div class="message-header">
+                        <span class="user">${escapeHtml(msg.username)}</span>
+                        <span class="time">${escapeHtml(msg.time || msg.timestamp || '')}</span>
+                    </div>
+                    <div class="text">${escapeHtml(msg.text)}</div>
                 `;
                 messagesBox.appendChild(msgDiv);
                 messagesBox.scrollTop = messagesBox.scrollHeight;
@@ -158,11 +174,11 @@
 
             socket.on('load_history', (messages) => {
                 messagesBox.innerHTML = '';
-                messages.forEach((msg) => displayMessage(msg.username, msg.text));
+                messages.forEach((msg) => displayMessage(msg));
             });
 
             socket.on('chat_message', (data) => {
-                displayMessage(data.username, data.text);
+                displayMessage(data);
             });
 
             chatForm.addEventListener('submit', (e) => {

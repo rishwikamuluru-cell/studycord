@@ -13,10 +13,14 @@ const io = new Server(server);
 app.use(express.json({ limit: '25mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Robust absolute storage path for Render & Local
+// Safe persistent storage path for Render cloud
 const DATA_DIR = process.env.RENDER ? '/opt/render/project/src' : __dirname;
-if (!fs.existsSync(DATA_DIR)) {
-    try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) {}
+try {
+    if (!fs.existsSync(DATA_DIR)) {
+        fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+} catch (e) {
+    console.error("Directory creation notice:", e);
 }
 
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
@@ -25,11 +29,11 @@ const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
 const RESET_CODES = {};
 
 function loadData(file, defaultVal) {
-    if (!fs.existsSync(file)) {
-        saveData(file, defaultVal);
-        return defaultVal;
-    }
     try {
+        if (!fs.existsSync(file)) {
+            fs.writeFileSync(file, JSON.stringify(defaultVal, null, 2), 'utf8');
+            return defaultVal;
+        }
         const data = fs.readFileSync(file, 'utf8');
         return JSON.parse(data);
     } catch (e) {
@@ -41,16 +45,15 @@ function saveData(file, data) {
     try {
         fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
     } catch (e) {
-        console.error("Critical storage write error:", e);
+        console.error("Storage write error:", e);
     }
 }
 
-// Initialize Storage Files
-if (!fs.existsSync(USERS_FILE)) saveData(USERS_FILE, []);
-if (!fs.existsSync(CHANNELS_FILE)) saveData(CHANNELS_FILE, ['general-lounge', 'announcements', 'study-hall']);
-if (!fs.existsSync(MESSAGES_FILE)) saveData(MESSAGES_FILE, { 'general-lounge': [] });
+// Initialize files safely
+loadData(USERS_FILE, []);
+loadData(CHANNELS_FILE, ['general-lounge', 'announcements', 'study-hall']);
+loadData(MESSAGES_FILE, { 'general-lounge': [] });
 
-// Nodemailer setup with secure fallback logging
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -60,96 +63,101 @@ const transporter = nodemailer.createTransport({
 });
 
 app.post('/api/signup', async (req, res) => {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) return res.status(400).json({ error: 'All fields are required' });
-
-    let users = loadData(USERS_FILE, []);
-    if (users.find(u => u.email === email)) return res.status(400).json({ error: 'Email already registered' });
-
     try {
+        const { username, email, password } = req.body;
+        if (!username || !email || !password) return res.status(400).json({ error: 'All fields are required' });
+
+        let users = loadData(USERS_FILE, []);
+        if (users.find(u => u.email === email)) return res.status(400).json({ error: 'Email already registered' });
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = { id: Date.now(), username, email, password: hashedPassword };
         users.push(newUser);
         saveData(USERS_FILE, users);
         res.json({ success: true, user: { id: newUser.id, username, email } });
     } catch (e) {
-        res.status(500).json({ error: 'Server registration error' });
+        res.status(500).json({ error: 'Server error during signup' });
     }
 });
 
 app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'All fields are required' });
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ error: 'All fields are required' });
 
-    let users = loadData(USERS_FILE, []);
-    const user = users.find(u => u.email === email);
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.status(401).json({ error: 'Invalid email or password' });
+        let users = loadData(USERS_FILE, []);
+        const user = users.find(u => u.email === email);
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+        res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
+    } catch (e) {
+        res.status(500).json({ error: 'Server error during login' });
     }
-    res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
 });
 
-// Facebook-grade secure code verification trigger
 app.post('/api/forgot-password', async (req, res) => {
-    const { email } = req.body;
-    let users = loadData(USERS_FILE, []);
-    const user = users.find(u => u.email === email);
-    
-    if (!user) {
-        return res.status(404).json({ error: 'No account found with this email address' });
-    }
-
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    RESET_CODES[email] = {
-        code: verificationCode,
-        expires: Date.now() + 15 * 60 * 1000 // 15 mins expiry
-    };
-
-    const mailOptions = {
-        from: '"StudyCord Security" <no-reply@studycord.com>',
-        to: email,
-        subject: 'Your StudyCord Verification Code',
-        text: `Hello,\n\nYour security verification code is: ${verificationCode}\n\nThis code will expire in 15 minutes. If you did not request this, please ignore this email.`
-    };
-
     try {
-        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-            throw new Error("Email credentials not configured");
-        }
-        await transporter.sendMail(mailOptions);
-        res.json({ success: true, message: 'Verification code sent successfully to your email.' });
-    } catch (error) {
-        // Fallback safety log so code is always accessible if mail credentials aren't set
-        console.log(`\n==================================================`);
-        console.log(`[FACEBOOK AUTH FALLBACK] Code for ${email}: ${verificationCode}`);
-        console.log(`==================================================\n`);
+        const { email } = req.body;
+        let users = loadData(USERS_FILE, []);
+        const user = users.find(u => u.email === email);
         
-        res.json({ 
-            success: true, 
-            message: 'Verification code generated! (Note: Check server console logs if email service is unconfigured).' 
-        });
+        if (!user) {
+            return res.status(404).json({ error: 'No account found with this email address' });
+        }
+
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        RESET_CODES[email] = {
+            code: verificationCode,
+            expires: Date.now() + 15 * 60 * 1000
+        };
+
+        try {
+            if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+                throw new Error("Email credentials missing");
+            }
+            await transporter.sendMail({
+                from: '"StudyCord Security" <no-reply@studycord.com>',
+                to: email,
+                subject: 'Your StudyCord Verification Code',
+                text: `Your security code is: ${verificationCode}`
+            });
+            res.json({ success: true, message: 'Verification code sent to your email.' });
+        } catch (mailErr) {
+            // Fallback: Prints code directly to Render logs so you can always see it instantly
+            console.log(`\n================================`);
+            console.log(`[VERIFICATION CODE FOR ${email}]: ${verificationCode}`);
+            console.log(`================================\n`);
+            
+            res.json({ 
+                success: true, 
+                message: 'Code generated! (Check Render service logs if email service is unconfigured).' 
+            });
+        }
+    } catch (e) {
+        res.status(500).json({ error: 'Server error processing password recovery' });
     }
 });
 
 app.post('/api/reset-password', async (req, res) => {
-    const { email, code, newPassword } = req.body;
-    const record = RESET_CODES[email];
-
-    if (!record || record.code !== code || Date.now() > record.expires) {
-        return res.status(400).json({ error: 'Invalid or expired verification code.' });
-    }
-
-    let users = loadData(USERS_FILE, []);
-    const idx = users.findIndex(u => u.email === email);
-    if (idx === -1) return res.status(404).json({ error: 'User account not found.' });
-
     try {
+        const { email, code, newPassword } = req.body;
+        const record = RESET_CODES[email];
+
+        if (!record || record.code !== code || Date.now() > record.expires) {
+            return res.status(400).json({ error: 'Invalid or expired verification code.' });
+        }
+
+        let users = loadData(USERS_FILE, []);
+        const idx = users.findIndex(u => u.email === email);
+        if (idx === -1) return res.status(404).json({ error: 'User account not found.' });
+
         users[idx].password = await bcrypt.hash(newPassword, 10);
         saveData(USERS_FILE, users);
         delete RESET_CODES[email];
         res.json({ success: true, message: 'Password successfully updated.' });
     } catch (e) {
-        res.status(500).json({ error: 'Error updating password.' });
+        res.status(500).json({ error: 'Server error resetting password' });
     }
 });
 
@@ -224,9 +232,9 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+    console.log(`StudyCord server running on port ${PORT}`);
     
-    // Continuous uptime keeper (pings every 8 minutes)
+    // Self-ping every 8 minutes to keep server active
     setInterval(() => {
         const url = process.env.RENDER_EXTERNAL_URL;
         if (url) {

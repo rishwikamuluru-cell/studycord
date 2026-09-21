@@ -3,87 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyCord - Vibrant Chat</title>
+    <title>StudyCord - Next-Gen Live Chat</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: #0b0f19; color: #f3f4f6; height: 100vh; display: flex; overflow: hidden; }
+        :root {
+            --primary: #8b5cf6;
+            --secondary: #ec4899;
+            --bg-base: #06080f;
+            --bg-sidebar: #0b0f19;
+            --bg-panel: #111827;
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }
 
-        /* Auth Screen (Vibrant Gradient Card) */
-        #auth-container { position: fixed; inset: 0; background: radial-gradient(circle at top right, #3b82f6 0%, #1e1b4b 40%, #0b0f19 100%); display: flex; justify-content: center; align-items: center; z-index: 100; }
-        .auth-box { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px 35px; border-radius: 24px; width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.7); display: flex; flex-direction: column; gap: 18px; }
-        .auth-box h2 { color: #fff; text-align: center; font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #60a5fa, #c084fc, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .auth-box p { color: #9ca3af; font-size: 0.9rem; text-align: center; margin-top: -10px; margin-bottom: 5px; }
-        .auth-box input { background: #1f2937; border: 1px solid #374151; padding: 14px 16px; border-radius: 12px; color: #fff; outline: none; transition: 0.2s; font-size: 0.95rem; }
-        .auth-box input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); }
-        .auth-box button { background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: 0.2s; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
-        .auth-box button:hover { opacity: 0.95; transform: translateY(-1px); }
-        .switch-auth { text-align: center; font-size: 0.9rem; color: #9ca3af; cursor: pointer; }
-        .switch-auth span { color: #818cf8; font-weight: 600; }
-        .forgot-link { text-align: right; font-size: 0.85rem; color: #818cf8; cursor: pointer; margin-top: -6px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-base); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+
+        /* Stunning Glassmorphic Auth Screen */
+        #auth-container { position: fixed; inset: 0; background: radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.25) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.25) 0%, transparent 40%), var(--bg-base); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .auth-box { background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 45px 38px; border-radius: 28px; width: 420px; box-shadow: 0 30px 60px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 20px; animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+        
+        .auth-box h2 { color: #fff; text-align: center; font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+        .auth-box p { color: var(--text-muted); font-size: 0.92rem; text-align: center; margin-top: -12px; }
+        .auth-box input { background: rgba(0,0,0,0.4); border: 1px solid var(--border); padding: 15px 18px; border-radius: 14px; color: #fff; outline: none; transition: 0.25s; font-size: 1rem; }
+        .auth-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.25); }
+        .auth-box button { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 15px; border-radius: 14px; font-weight: 700; cursor: pointer; font-size: 1.05rem; transition: 0.25s; box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4); }
+        .auth-box button:hover { opacity: 0.95; transform: translateY(-2px); shadow: 0 12px 30px rgba(139, 92, 246, 0.6); }
+        .switch-auth { text-align: center; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; }
+        .switch-auth span { color: #c084fc; font-weight: 600; }
+        .forgot-link { text-align: right; font-size: 0.85rem; color: #c084fc; cursor: pointer; margin-top: -8px; }
         .forgot-link:hover { text-decoration: underline; }
 
-        /* Main Chat App Layout */
+        /* Main App Grid */
         #app-container { display: none; width: 100%; height: 100%; }
-        
-        .sidebar { width: 300px; background-color: #0f172a; display: flex; flex-direction: column; border-right: 1px solid #1e293b; }
-        .sidebar-header { padding: 22px 20px; font-size: 1.25rem; font-weight: 800; color: #ffffff; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, #1e293b, #0f172a); }
-        .user-tag { font-size: 0.75rem; color: #e2e8f0; background: #334155; padding: 5px 12px; border-radius: 20px; font-weight: 600; border: 1px solid #475569; }
 
-        .sidebar-actions { padding: 12px 20px 0 20px; display: flex; justify-content: space-between; align-items: center; }
-        .notif-btn { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .notif-btn:hover { background: #334155; color: white; }
-        .notif-btn.active { background: #059669; border-color: #10b981; color: white; }
+        /* Left Sidebar */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+        .sidebar-header { padding: 24px 20px; font-size: 1.3rem; font-weight: 900; color: #ffffff; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent); }
+        .user-tag { font-size: 0.75rem; color: #e2e8f0; background: rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 20px; font-weight: 600; border: 1px solid var(--border); }
 
-        .channel-section-header { padding: 15px 20px 8px 20px; font-size: 0.75rem; font-weight: 700; color: #64748b; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 1px; }
-        .add-channel-btn { background: #1e293b; border: none; color: #818cf8; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .add-channel-btn:hover { background: #6366f1; color: #fff; }
+        .toolbar { padding: 14px 20px 0 20px; display: flex; gap: 8px; align-items: center; }
+        .tool-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.2s; flex: 1; text-align: center; }
+        .tool-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        .tool-btn.active { background: #059669; border-color: #10b981; color: white; }
 
-        .channel-list { padding: 8px 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 6px; }
-        .channel { padding: 12px 14px; border-radius: 12px; color: #94a3b8; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
-        .channel:hover { background-color: #1e293b; color: #f1f5f9; }
-        .channel.active { background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2)); color: #c084fc; border: 1px solid rgba(99, 102, 241, 0.4); font-weight: 600; }
+        .section-header { padding: 20px 20px 8px 20px; font-size: 0.72rem; font-weight: 800; color: #64748b; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 1.2px; }
+        .add-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #c084fc; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .add-btn:hover { background: var(--primary); color: #fff; border-color: transparent; }
 
-        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: #0b0f19; }
-        .chat-header { padding: 18px 24px; background-color: #0f172a; border-bottom: 1px solid #1e293b; font-weight: 700; font-size: 1.15rem; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
-        .logout-btn { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); padding: 7px 14px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+        .channel-list { padding: 6px 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+        .channel { padding: 12px 14px; border-radius: 12px; color: var(--text-muted); font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .channel:hover { background-color: rgba(255,255,255,0.04); color: #fff; }
+        .channel.active { background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2)); color: #e879f9; border: 1px solid rgba(139, 92, 246, 0.35); font-weight: 600; }
+
+        /* Central Chat Area */
+        .chat-container { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-base); position: relative; }
+        .chat-header { padding: 20px 28px; background-color: var(--bg-sidebar); border-bottom: 1px solid var(--border); font-weight: 700; font-size: 1.2rem; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
+        .logout-btn { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
         .logout-btn:hover { background: #ef4444; color: white; }
 
-        /* Chat Messages Feed */
-        .messages-box { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
+        /* Message Stream with Right/Left Alignment */
+        .messages-box { flex: 1; padding: 28px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
         
-        /* Message Rows (Right for Me, Left for Others) */
-        .message-row { display: flex; flex-direction: column; width: 100%; margin-bottom: 4px; }
-        .message-row.me { align-items: flex-end; }
-        .message-row.other { align-items: flex-start; }
+        .msg-row { display: flex; flex-direction: column; width: 100%; }
+        .msg-row.me { align-items: flex-end; }
+        .msg-row.other { align-items: flex-start; }
 
-        .message-bubble { padding: 12px 16px; border-radius: 18px; max-width: 65%; word-break: break-word; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: fadeIn 0.2s ease; position: relative; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .msg-bubble { padding: 14px 18px; border-radius: 20px; max-width: 65%; word-break: break-word; box-shadow: 0 4px 20px rgba(0,0,0,0.25); animation: fadeSlide 0.25s ease; position: relative; }
+        @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Styling for My Messages (Right, Colorful Gradient) */
-        .message-row.me .message-bubble { background: linear-gradient(135deg, #6366f1, #9333ea); color: #ffffff; border-bottom-right-radius: 4px; }
-        .message-row.me .message-user { display: none; } /* Hide own name for cleaner look */
-        .message-row.me .message-time { color: rgba(255, 255, 255, 0.7); text-align: right; }
+        /* My message styling (Right, vibrant gradient) */
+        .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; border-bottom-right-radius: 6px; }
+        .msg-row.me .msg-user { display: none; }
+        .msg-row.me .msg-time { color: rgba(255,255,255,0.7); text-align: right; }
 
-        /* Styling for Others' Messages (Left, Sleek Dark Card) */
-        .message-row.other .message-bubble { background-color: #1e293b; color: #f1f5f9; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
-        .message-row.other .message-user { font-weight: 700; color: #a78bfa; font-size: 0.85rem; margin-bottom: 4px; }
-        .message-row.other .message-time { color: #94a3b8; text-align: left; }
+        /* Other message styling (Left, sleek dark panel) */
+        .msg-row.other .msg-bubble { background-color: var(--bg-panel); color: var(--text-main); border-bottom-left-radius: 6px; border: 1px solid var(--border); }
+        .msg-row.other .msg-user { font-weight: 700; color: #c084fc; font-size: 0.82rem; margin-bottom: 4px; }
+        .msg-row.other .msg-time { color: var(--text-muted); text-align: left; }
 
-        .message-text { font-size: 0.95rem; line-height: 1.45; }
-        .message-time { font-size: 0.68rem; margin-top: 6px; display: block; }
+        .msg-text { font-size: 0.98rem; line-height: 1.5; }
+        .msg-time { font-size: 0.68rem; margin-top: 6px; display: block; font-weight: 500; }
         
-        .message-bubble img { max-width: 100%; border-radius: 12px; margin-top: 8px; display: block; border: 1px solid rgba(255,255,255,0.15); }
-        .message-bubble a { color: #93c5fd; text-decoration: none; display: inline-block; margin-top: 6px; font-size: 0.9rem; font-weight: 500; }
-        .message-bubble a:hover { text-decoration: underline; }
+        .msg-bubble img { max-width: 100%; border-radius: 12px; margin-top: 10px; display: block; border: 1px solid rgba(255,255,255,0.15); }
+        .msg-bubble a { color: #60a5fa; text-decoration: none; display: inline-block; margin-top: 6px; font-weight: 600; font-size: 0.9rem; }
+        .msg-bubble a:hover { text-decoration: underline; }
+
+        /* Live Typing Banner */
+        .typing-indicator { padding: 6px 28px; font-size: 0.8rem; color: #a855f7; font-style: italic; height: 24px; display: none; align-items: center; background: rgba(139, 92, 246, 0.05); }
+
+        /* Right Sidebar: Active Online Members */
+        .members-sidebar { width: 220px; background-color: var(--bg-sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+        .members-header { padding: 20px; font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 1px solid var(--border); }
+        .members-list { padding: 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .member-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; padding: 8px 10px; border-radius: 8px; color: var(--text-main); background: rgba(255,255,255,0.02); }
+        .status-dot { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
 
         /* Modern Input Bar */
-        .input-form { padding: 20px 24px; background-color: #0f172a; display: flex; gap: 12px; align-items: center; border-top: 1px solid #1e293b; }
-        .file-upload-label { background-color: #1e293b; color: #94a3b8; width: 44px; height: 44px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; border: 1px solid #334155; transition: 0.2s; }
-        .file-upload-label:hover { background-color: #6366f1; color: white; border-color: transparent; }
+        .input-form { padding: 20px 28px; background-color: var(--bg-sidebar); display: flex; gap: 14px; align-items: center; border-top: 1px solid var(--border); }
+        .file-label { background: var(--bg-panel); color: var(--text-muted); width: 48px; height: 48px; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; border: 1px solid var(--border); transition: 0.2s; }
+        .file-label:hover { background: var(--primary); color: white; border-color: transparent; }
         #file-input { display: none; }
-        #message-input { flex: 1; background-color: #111827; border: 1px solid #374151; padding: 13px 18px; border-radius: 14px; color: #ffffff; outline: none; font-size: 0.95rem; transition: 0.2s; }
-        #message-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); }
-        .input-form button[type="submit"] { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; padding: 0 24px; height: 46px; border-radius: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
+        #message-input { flex: 1; background: var(--bg-base); border: 1px solid var(--border); padding: 14px 20px; border-radius: 14px; color: #fff; outline: none; font-size: 0.98rem; transition: 0.25s; }
+        #message-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25); }
+        .input-form button[type="submit"] { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 0 28px; height: 48px; border-radius: 14px; font-weight: 700; cursor: pointer; transition: 0.25s; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); }
         .input-form button[type="submit"]:hover { opacity: 0.95; transform: scale(1.02); }
 
         .error-msg { color: #f87171; font-size: 0.85rem; text-align: center; }
@@ -92,13 +116,13 @@
 </head>
 <body>
 
-    <!-- Auth / Reset Overlay -->
+    <!-- Auth / Password Reset Overlay -->
     <div id="auth-container">
         <div class="auth-box">
             <h2 id="auth-title">StudyCord</h2>
-            <p id="auth-subtitle">Connect, collaborate & study together</p>
+            <p id="auth-subtitle">The ultimate real-time student workspace</p>
             
-            <div id="form-fields" style="display: flex; flex-direction: column; gap: 14px;">
+            <div id="form-fields" style="display: flex; flex-direction: column; gap: 16px;">
                 <input type="text" id="reg-username" placeholder="Full Name or Username" style="display: none;">
                 <input type="email" id="auth-email" placeholder="Email address">
                 <input type="password" id="auth-password" placeholder="Password">
@@ -115,38 +139,49 @@
         </div>
     </div>
 
-    <!-- Main App Layout -->
+    <!-- Main App UI -->
     <div id="app-container">
+        <!-- Left Sidebar: Channels & Theme Picker -->
         <div class="sidebar">
             <div class="sidebar-header">
                 StudyCord
                 <span class="user-tag" id="current-username-display"></span>
             </div>
             
-            <div class="sidebar-actions">
-                <button class="notif-btn" id="notifToggleBtn" onclick="toggleNotifications()">🔔 Enable Alerts</button>
+            <div class="toolbar">
+                <button class="tool-btn" id="notifBtn" onclick="toggleNotifications()">🔔 Alerts</button>
+                <button class="tool-btn" onclick="cycleTheme()">🎨 Theme</button>
             </div>
 
-            <div class="channel-section-header">
+            <div class="section-header">
                 <span>Channels</span>
-                <button class="add-channel-btn" onclick="createNewChannel()" title="Create Channel">+</button>
+                <button class="add-btn" onclick="createNewChannel()" title="New Channel">+</button>
             </div>
             <div class="channel-list" id="channelList"></div>
         </div>
 
+        <!-- Central Chat Room -->
         <div class="chat-container">
             <div class="chat-header">
-                <span id="current-channel-title"># general-chat</span>
+                <span id="current-channel-title"># general-lounge</span>
                 <button class="logout-btn" onclick="logout()">Log Out</button>
             </div>
+            
             <div class="messages-box" id="messagesBox"></div>
+            <div class="typing-indicator" id="typingIndicator"></div>
 
             <form class="input-form" id="chatForm">
-                <label for="file-input" class="file-upload-label" title="Attach File/Image">📎</label>
+                <label for="file-input" class="file-label" title="Attach Image or File">📎</label>
                 <input type="file" id="file-input">
                 <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
                 <button type="submit">Send</button>
             </form>
+        </div>
+
+        <!-- Right Sidebar: Active Online Members -->
+        <div class="members-sidebar">
+            <div class="members-header">Active Members (<span id="memberCount">0</span>)</div>
+            <div class="members-list" id="membersList"></div>
         </div>
     </div>
 
@@ -154,10 +189,27 @@
     <script>
         let authState = 'login';
         let currentUser = null;
-        let currentChannel = 'general-chat';
+        let currentChannel = 'general-lounge';
         let socket = null;
         let selectedFile = null;
         let resetEmailTarget = '';
+        let typingTimeout = null;
+
+        // Theme Cycling Presets
+        const themes = [
+            { primary: '#8b5cf6', secondary: '#ec4899', name: 'Neon Purple' },
+            { primary: '#3b82f6', secondary: '#06b6d4', name: 'Ocean Blue' },
+            { primary: '#10b981', secondary: '#3b82f6', name: 'Emerald' },
+            { primary: '#f59e0b', secondary: '#ef4444', name: 'Sunset' }
+        ];
+        let currentThemeIdx = 0;
+
+        function cycleTheme() {
+            currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+            const t = themes[currentThemeIdx];
+            document.documentElement.style.setProperty('--primary', t.primary);
+            document.documentElement.style.setProperty('--secondary', t.secondary);
+        }
 
         const savedUser = localStorage.getItem('studycord_user');
         if (savedUser) {
@@ -166,18 +218,12 @@
         }
 
         function toggleNotifications() {
-            if (!("Notification" in window)) {
-                alert("This browser does not support desktop notifications.");
-                return;
-            }
-            Notification.requestPermission().then(permission => {
-                const btn = document.getElementById('notifToggleBtn');
-                if (permission === "granted") {
-                    btn.classList.add('active');
-                    btn.innerText = '🔔 Alerts Enabled';
-                    new Notification("StudyCord Notifications Enabled! 🎉", { body: "You will now get alerts for new messages." });
-                } else {
-                    alert("Notification permission denied.");
+            if (!("Notification" in window)) return alert("Browser does not support notifications");
+            Notification.requestPermission().then(perm => {
+                if (perm === "granted") {
+                    document.getElementById('notifBtn').classList.add('active');
+                    document.getElementById('notifBtn').innerText = '🔔 Active';
+                    new Notification("StudyCord Alerts Enabled! 🎉");
                 }
             });
         }
@@ -189,7 +235,7 @@
             if (authState === 'login') {
                 authState = 'signup';
                 document.getElementById('auth-title').innerText = 'Create Account';
-                document.getElementById('auth-subtitle').innerText = 'Join the study community';
+                document.getElementById('auth-subtitle').innerText = 'Join the student network';
                 document.getElementById('reg-username').style.display = 'block';
                 document.getElementById('forgot-password-trigger').style.display = 'none';
                 document.getElementById('auth-btn').innerText = 'Sign Up';
@@ -197,7 +243,7 @@
             } else {
                 authState = 'login';
                 document.getElementById('auth-title').innerText = 'StudyCord';
-                document.getElementById('auth-subtitle').innerText = 'Connect, collaborate & study together';
+                document.getElementById('auth-subtitle').innerText = 'The ultimate real-time student workspace';
                 document.getElementById('reg-username').style.display = 'none';
                 document.getElementById('auth-password').style.display = 'block';
                 document.getElementById('forgot-password-trigger').style.display = 'block';
@@ -209,7 +255,7 @@
         function showForgotPassword() {
             authState = 'forgot';
             document.getElementById('auth-title').innerText = 'Reset Password';
-            document.getElementById('auth-subtitle').innerText = 'Enter your email for verification code';
+            document.getElementById('auth-subtitle').innerText = 'Enter your email for security code';
             document.getElementById('reg-username').style.display = 'none';
             document.getElementById('auth-password').style.display = 'none';
             document.getElementById('forgot-password-trigger').style.display = 'none';
@@ -228,10 +274,9 @@
             successDiv.innerText = '';
 
             if (authState === 'forgot') {
-                if (!email) { errorDiv.innerText = 'Please enter your email'; return; }
+                if (!email) { errorDiv.innerText = 'Enter your email'; return; }
                 const res = await fetch('/api/forgot-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
                 const data = await res.json();
@@ -239,21 +284,17 @@
                     resetEmailTarget = email;
                     authState = 'reset';
                     document.getElementById('auth-title').innerText = 'Enter Code';
-                    document.getElementById('auth-subtitle').innerText = 'Check your email for the 6-digit code';
+                    document.getElementById('auth-subtitle').innerText = 'Check your email for 6-digit code';
                     document.getElementById('auth-email').style.display = 'none';
                     document.getElementById('auth-password').style.display = 'block';
                     document.getElementById('auth-password').placeholder = '6-Digit Code';
                     
-                    let newPassInput = document.getElementById('new-password');
-                    if (!newPassInput) {
-                        newPassInput = document.createElement('input');
-                        newPassInput.type = 'password';
-                        newPassInput.id = 'new-password';
-                        newPassInput.placeholder = 'New Password';
-                        document.getElementById('form-fields').appendChild(newPassInput);
-                    } else {
-                        newPassInput.style.display = 'block';
-                    }
+                    let np = document.getElementById('new-password');
+                    if (!np) {
+                        np = document.createElement('input');
+                        np.type = 'password'; np.id = 'new-password'; np.placeholder = 'New Password';
+                        document.getElementById('form-fields').appendChild(np);
+                    } else { np.style.display = 'block'; }
                     document.getElementById('auth-btn').innerText = 'Update Password';
                     successDiv.innerText = data.message;
                 } else { errorDiv.innerText = data.error; }
@@ -264,13 +305,12 @@
                 const code = password;
                 const newPassword = document.getElementById('new-password').value.trim();
                 const res = await fetch('/api/reset-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: resetEmailTarget, code, newPassword })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert('Password successfully reset! Please log in.');
+                    alert('Password updated! Please log in.');
                     location.reload();
                 } else { errorDiv.innerText = data.error; }
                 return;
@@ -280,8 +320,7 @@
             const payload = authState === 'login' ? { email, password } : { username, email, password };
 
             const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const data = await res.json();
@@ -316,6 +355,7 @@
             const messagesBox = document.getElementById('messagesBox');
             const fileInput = document.getElementById('file-input');
             const channelList = document.getElementById('channelList');
+            const typingIndicator = document.getElementById('typingIndicator');
 
             fileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
@@ -323,6 +363,24 @@
                     selectedFile = file;
                     messageInput.placeholder = `Attached: ${file.name}`;
                 }
+            });
+
+            // Live typing trigger
+            messageInput.addEventListener('input', () => {
+                socket.emit('typing', { channel: currentChannel, username: currentUser.username });
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    socket.emit('stop_typing', { channel: currentChannel });
+                }, 1500);
+            });
+
+            socket.on('display_typing', (user) => {
+                typingIndicator.style.display = 'flex';
+                typingIndicator.innerText = `${user} is typing...`;
+            });
+
+            socket.on('hide_typing', () => {
+                typingIndicator.style.display = 'none';
             });
 
             socket.on('load_channels', (channels) => {
@@ -336,13 +394,22 @@
                         document.getElementById('current-channel-title').innerText = `# ${ch}`;
                         messageInput.placeholder = `Message #${ch}...`;
                         document.querySelectorAll('.channel').forEach(el => el.classList.toggle('active', el.innerText === `# ${ch}`));
-                        socket.emit('join_channel', currentChannel);
+                        socket.emit('join_channel', { channel: currentChannel, username: currentUser.username });
                     };
                     channelList.appendChild(div);
                 });
             });
 
-            socket.emit('join_channel', currentChannel);
+            socket.emit('join_channel', { channel: currentChannel, username: currentUser.username });
+
+            socket.on('update_active_users', (users) => {
+                const mList = document.getElementById('membersList');
+                document.getElementById('memberCount').innerText = users.length;
+                mList.innerHTML = '';
+                users.forEach(u => {
+                    mList.innerHTML += `<div class="member-item"><div class="status-dot"></div>${escapeHtml(u)}</div>`;
+                });
+            });
 
             socket.on('load_history', (messages) => {
                 messagesBox.innerHTML = '';
@@ -351,38 +418,34 @@
 
             socket.on('chat_message', (msg) => {
                 displayMessage(msg);
-                
-                // Trigger notification if message is from someone else and window backgrounded
                 if (msg.username !== currentUser.username && Notification.permission === "granted") {
-                    new Notification(`New message in #${currentChannel} from ${msg.username}`, {
-                        body: msg.text || "Sent an attachment"
-                    });
+                    new Notification(`New message from ${msg.username}`, { body: msg.text || "Sent file" });
                 }
             });
 
             function displayMessage(msg) {
                 const isMe = msg.username === currentUser.username;
-                const rowDiv = document.createElement('div');
-                rowDiv.className = `message-row ${isMe ? 'me' : 'other'}`;
+                const row = document.createElement('div');
+                row.className = `msg-row ${isMe ? 'me' : 'other'}`;
                 
                 let fileHtml = '';
                 if (msg.file) {
                     if (msg.file.type.startsWith('image/')) {
-                        fileHtml = `<img src="${msg.file.data}" alt="${escapeHtml(msg.file.name)}">`;
+                        fileHtml = `<img src="${msg.file.data}" alt="attachment">`;
                     } else {
                         fileHtml = `<a href="${msg.file.data}" download="${escapeHtml(msg.file.name)}">📁 Download ${escapeHtml(msg.file.name)}</a>`;
                     }
                 }
 
-                rowDiv.innerHTML = `
-                    <div class="message-bubble">
-                        <div class="message-user">${isMe ? '' : escapeHtml(msg.username)}</div>
-                        <div class="message-text">${escapeHtml(msg.text)}</div>
+                row.innerHTML = `
+                    <div class="msg-bubble">
+                        <div class="msg-user">${isMe ? '' : escapeHtml(msg.username)}</div>
+                        <div class="msg-text">${escapeHtml(msg.text)}</div>
                         ${fileHtml}
-                        <span class="message-time">${escapeHtml(msg.timestamp || '')}</span>
+                        <span class="msg-time">${escapeHtml(msg.timestamp || '')}</span>
                     </div>
                 `;
-                messagesBox.appendChild(rowDiv);
+                messagesBox.appendChild(row);
                 messagesBox.scrollTop = messagesBox.scrollHeight;
             }
 
@@ -391,7 +454,7 @@
                 return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
             }
 
-            chatForm.addEventListener('submit', async (e) => {
+            chatForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const text = messageInput.value.trim();
                 if (!text && !selectedFile) return;
@@ -414,6 +477,7 @@
                     text,
                     file
                 });
+                socket.emit('stop_typing', { channel: currentChannel });
                 messageInput.value = '';
                 fileInput.value = '';
                 selectedFile = null;

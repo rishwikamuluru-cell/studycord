@@ -10,12 +10,13 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.json({ limit: '15mb' }));
+app.use(express.json({ limit: '20mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-const USERS_FILE = path.join(__dirname, 'users.json');
-const CHANNELS_FILE = path.join(__dirname, 'channels.json');
-const MESSAGES_FILE = path.join(__dirname, 'messages.json');
+const DATA_DIR = process.env.RENDER ? '/opt/render/project/src' : __dirname;
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const CHANNELS_FILE = path.join(DATA_DIR, 'channels.json');
+const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
 const RESET_CODES = {};
 
 function loadData(file, defaultVal = []) {
@@ -28,11 +29,15 @@ function loadData(file, defaultVal = []) {
 }
 
 function saveData(file, data) {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    try {
+        fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    } catch (e) {
+        console.error("Error saving data:", e);
+    }
 }
 
 if (!fs.existsSync(USERS_FILE)) saveData(USERS_FILE, []);
-if (!fs.existsSync(CHANNELS_FILE)) saveData(CHANNELS_FILE, ['general-chat', 'development', 'study-hall']);
+if (!fs.existsSync(CHANNELS_FILE)) saveData(CHANNELS_FILE, ['general-lounge', 'coding-hub', 'exam-prep']);
 if (!fs.existsSync(MESSAGES_FILE)) saveData(MESSAGES_FILE, {});
 
 const transporter = nodemailer.createTransport({
@@ -83,8 +88,8 @@ app.post('/api/forgot-password', async (req, res) => {
         await transporter.sendMail({
             from: '"StudyCord" <no-reply@studycord.com>',
             to: email,
-            subject: 'Password Reset Code',
-            text: `Your verification code is: ${verificationCode}`
+            subject: 'StudyCord Security Code',
+            text: `Your password reset verification code is: ${verificationCode}`
         });
         res.json({ success: true, message: 'Verification code sent to email' });
     } catch (error) {
@@ -97,7 +102,7 @@ app.post('/api/reset-password', async (req, res) => {
     const { email, code, newPassword } = req.body;
     const record = RESET_CODES[email];
     if (!record || record.code !== code || Date.now() > record.expires) {
-        return res.status(400).json({ error: 'Invalid or expired code' });
+        return res.status(400).json({ error: 'Invalid or expired verification code' });
     }
 
     let users = loadData(USERS_FILE);
@@ -107,22 +112,43 @@ app.post('/api/reset-password', async (req, res) => {
     users[idx].password = await bcrypt.hash(newPassword, 10);
     saveData(USERS_FILE, users);
     delete RESET_CODES[email];
-    res.json({ success: true, message: 'Password reset successful' });
+    res.json({ success: true, message: 'Password successfully updated' });
 });
 
+app.get('/ping', (req, res) => res.send('Active'));
+
+// Active online users tracking
+const activeUsers = {};
+
 io.on('connection', (socket) => {
-    let channels = loadData(CHANNELS_FILE, ['general-chat']);
+    let channels = loadData(CHANNELS_FILE, ['general-lounge']);
     socket.emit('load_channels', channels);
 
-    socket.on('join_channel', (channel) => {
+    socket.on('join_channel', ({ channel, username }) => {
         socket.join(channel);
+        socket.username = username;
+        socket.currentChannel = channel;
+
+        if (!activeUsers[channel]) activeUsers[channel] = new Set();
+        activeUsers[channel].add(username);
+
+        io.to(channel).emit('update_active_users', Array.from(activeUsers[channel]));
+
         let messagesObj = loadData(MESSAGES_FILE, {});
         socket.emit('load_history', (messagesObj[channel] || []).slice(-100));
     });
 
+    socket.on('typing', ({ channel, username }) => {
+        socket.to(channel).emit('display_typing', username);
+    });
+
+    socket.on('stop_typing', ({ channel }) => {
+        socket.to(channel).emit('hide_typing');
+    });
+
     socket.on('create_channel', (name) => {
         let clean = name.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
-        let channels = loadData(CHANNELS_FILE, ['general-chat']);
+        let channels = loadData(CHANNELS_FILE, ['general-lounge']);
         if (!channels.includes(clean)) {
             channels.push(clean);
             saveData(CHANNELS_FILE, channels);
@@ -148,7 +174,22 @@ io.on('connection', (socket) => {
         saveData(MESSAGES_FILE, messagesObj);
         io.to(channel).emit('chat_message', newMsg);
     });
+
+    socket.on('disconnect', () => {
+        if (socket.currentChannel && socket.username) {
+            if (activeUsers[socket.currentChannel]) {
+                activeUsers[socket.currentChannel].delete(socket.username);
+                io.to(socket.currentChannel).emit('update_active_users', Array.from(activeUsers[socket.currentChannel]));
+            }
+        }
+    });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => {
+    console.log(`StudyCord running on port ${PORT}`);
+    setInterval(() => {
+        const url = process.env.RENDER_EXTERNAL_URL;
+        if (url) http.get(`${url}/ping`).on('error', () => {});
+    }, 9 * 60 * 1000);
+});

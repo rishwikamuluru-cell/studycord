@@ -1,7 +1,7 @@
 {
   "name": "studycord",
-  "version": "1.0.0",
-  "description": "Colorful Modern Chat App with Right/Left Bubbles & Notifications",
+  "version": "2.0.0",
+  "description": "Next-Gen Futuristic Study & Chat Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

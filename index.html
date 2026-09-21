@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMULURU RISHWIK | CYBER-ENGINEER PORTFOLIO</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="cyber-theme">
+
+    <!-- Interactive Matrix Background Canvas -->
+    <canvas id="cyberCanvas"></canvas>
+    <div class="scanline"></div>
+
+    <!-- HUD Metrics Bar -->
+    <div class="metrics-bar">
+        <div class="metric-item"><span class="metric-label">CORE_STATUS:</span> <span class="metric-val green">● ONLINE</span></div>
+        <div class="metric-item"><span class="metric-label">PING:</span> <span id="latencyMetric" class="metric-val">12ms</span></div>
+        <div class="metric-item"><span class="metric-label">API CLOUD:</span> <span class="metric-val cyan">GEMINI-FLASH-1.5</span></div>
+        <div class="metric-item"><span class="metric-label">AUDIO:</span> <button id="audioToggleBtn" class="audio-btn">SFX: [OFF]</button></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">&lt;RISHWIK.DEV&nbsp;/&gt;</div>
+        <ul class="nav-links">
+            <li><a href="#about">OVERVIEW</a></li>
+            <li><a href="#skills">CAPABILITIES</a></li>
+            <li><a href="#projects">SYSTEMS</a></li>
+            <li><a href="#contact">DISPATCH</a></li>
+        </ul>
+        <div class="nav-actions">
+            <button id="terminalToggleBtn" class="terminal-btn">$&gt; CLI_TERMINAL</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="about" class="hero">
+        <div class="hero-container">
+
+            <!-- Interactive Cyber Avatar Container -->
+            <div class="avatar-wrapper" id="avatarContainer">
+                <div class="cyber-avatar-frame">
+                    <img id="userAvatar" src="https://i.ibb.co/fdfN3F6q/Whats-App-Image-2026-08-28-at-12-10-09-PM.jpg" alt="Amuluru Rishwik Avatar" class="avatar-img">
+                    <div class="avatar-overlay-glow"></div>
+                </div>
+                <div class="avatar-badge">CYBER_NODE_v3</div>
+            </div>
+
+            <div class="hero-content">
+                <div class="status-badge"><span class="dot"></span> READY_FOR_CONTRACTS</div>
+                <h1 class="glitch-text">ENGINEERING <span class="highlight">AI & FULL-STACK</span></h1>
+                <p class="subtitle">Hi, I'm <strong>Amuluru Rishwik</strong>. I build <span id="typing-text" class="typing"></span><span class="cursor">&nbsp;</span></p>
+                <p class="bio">Building ultra-fast full-stack web applications, reactive user interfaces, and custom AI API workflows engineered for high performance.</p>
+                <div class="hero-buttons">
+                    <a href="#projects" class="btn primary-btn">INSPECT_SYSTEMS</a>
+                    <a href="#contact" class="btn secondary-btn">INITIATE_CONTACT</a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Technical Capabilities -->
+    <section id="skills" class="section">
+        <h2 class="section-title">TECHNICAL_CAPABILITIES</h2>
+        <div class="skills-grid">
+            <div class="skill-card">
+                <div class="card-header-icon">
+                    <span class="card-icon">⚡</span>
+                    <span class="skill-tag">FRONTEND</span>
+                </div>
+                <h3>Reactive UI Engineering</h3>
+                <p>React.js (Hooks, Context, SSR), JavaScript (ESNext), HTML5/CSS3, Tailwind CSS, Web Vitals Optimization, Responsive Layouts.</p>
+            </div>
+            <div class="skill-card">
+                <div class="card-header-icon">
+                    <span class="card-icon">🛠️</span>
+                    <span class="skill-tag">BACKEND</span>
+                </div>
+                <h3>Distributed Services</h3>
+                <p>Node.js, Express microservices, RESTful API architecture, Python pipelines, Middleware authentication, Caching strategies.</p>
+            </div>
+            <div class="skill-card">
+                <div class="card-header-icon">
+                    <span class="card-icon">🤖</span>
+                    <span class="skill-tag">GEN_AI</span>
+                </div>
+                <h3>LLM Orchestration</h3>
+                <p>Google Gemini API integration, Structured JSON schemas, Dynamic prompt optimization, Vector workflows, Git CI/CD pipelines.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Systems Architecture Section -->
+    <section id="projects" class="section">
+        <h2 class="section-title">FEATURED_SYSTEMS</h2>
+
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">ALL_SYSTEMS</button>
+            <button class="filter-btn" data-filter="ai">AI / GENAI</button>
+            <button class="filter-btn" data-filter="fullstack">FULL_STACK</button>
+            <button class="filter-btn" data-filter="react">REACT_CORE</button>
+        </div>
+
+        <div class="projects-grid">
+            <!-- Card 1 -->
+            <div class="project-card" data-category="ai react fullstack" data-id="p1">
+                <div class="card-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80" alt="AI Resume Matcher" class="project-img">
+                    <span class="img-badge">AI_NODE</span>
+                </div>
+                <div class="card-body-content">
+                    <div class="card-header">
+                        <span class="project-type">GENAI SYSTEM</span>
+                        <h3>AI Resume Matcher</h3>
+                    </div>
+                    <p>Production ATS analysis engine parsing PDF payloads against job specs via Google Gemini LLM API.</p>
+                    <div class="tags">
+                        <span class="tag">React</span>
+                        <span class="tag">Node.js</span>
+                        <span class="tag">Gemini API</span>
+                    </div>
+                    <button class="view-details-btn">VIEW_ARCHITECTURE →</button>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="project-card" data-category="fullstack react" data-id="p2">
+                <div class="card-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1556742049-0a67568d0d9f?auto=format&fit=crop&w=800&q=80" alt="E-Commerce Micro-Engine" class="project-img">
+                    <span class="img-badge">FULL_STACK</span>
+                </div>
+                <div class="card-body-content">
+                    <div class="card-header">
+                        <span class="project-type">FULL-STACK CORE</span>
+                        <h3>E-Commerce Micro-Engine</h3>
+                    </div>
+                    <p>High-throughput shopping platform featuring reactive state, search indexing, and payment workflows.</p>
+                    <div class="tags">
+                        <span class="tag">React</span>
+                        <span class="tag">Express.js</span>
+                        <span class="tag">REST API</span>
+                    </div>
+                    <button class="view-details-btn">VIEW_ARCHITECTURE →</button>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="project-card" data-category="ai fullstack" data-id="p3">
+                <div class="card-image-wrapper">
+                    <img src="https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80" alt="Smart Workflow Planner" class="project-img">
+                    <span class="img-badge">ALGORITHM</span>
+                </div>
+                <div class="card-body-content">
+                    <div class="card-header">
+                        <span class="project-type">BACKEND ALGORITHM</span>
+                        <h3>Smart Workflow Planner</h3>
+                    </div>
+                    <p>Algorithmic task scheduling engine calculating urgency matrices and dispatching automated task queues.</p>
+                    <div class="tags">
+                        <span class="tag">JavaScript</span>
+                        <span class="tag">Python</span>
+                        <span class="tag">Node.js</span>
+                    </div>
+                    <button class="view-details-btn">VIEW_ARCHITECTURE →</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Dispatch System -->
+    <section id="contact" class="section">
+        <h2 class="section-title">DIRECT_DISPATCH</h2>
+        <p class="section-desc">Transmit an inquiry directly to my operational Gmail endpoint.</p>
+
+        <form id="contactForm" class="contact-form">
+            <div class="form-row">
+                <input type="text" id="name" placeholder="ORGANIZATION / NAME" required>
+                <input type="email" id="email" placeholder="EMAIL_ADDRESS" required>
+            </div>
+            <textarea id="message" rows="5" placeholder="PROJECT_SPECS OR MESSAGE..." required></textarea>
+
+            <button type="submit" id="submitBtn" class="btn primary-btn">TRANSMIT_PAYLOAD</button>
+            <p id="statusMessage" class="status-msg"></p>
+        </form>
+    </section>
+
+    <!-- Project Architecture Modal -->
+    <div id="projectModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="closeModalBtn" class="close-btn">&times;</button>
+            <div class="modal-header-image">
+                <img id="modalImage" src="" alt="Project Preview" class="modal-img">
+            </div>
+            <h3 id="modalTitle">System Title</h3>
+            <div id="modalTags" class="tags"></div>
+            <p id="modalDescription" class="modal-body"></p>
+
+            <div class="diagram-container">
+                <span class="diagram-title">SYSTEM_TOPOLOGY_DIAGRAM:</span>
+                <pre id="modalDiagram" class="ascii-diagram"></pre>
+            </div>
+
+            <div class="modal-footer">
+                <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="btn secondary-btn">SOURCE_CODE</a>
+                <a href="#contact" onclick="closeProjectModal()" class="btn primary-btn">INQUIRE_NOW</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLI Terminal Overlay -->
+    <div id="terminalOverlay" class="terminal-overlay hidden">
+        <div class="terminal-window">
+            <div class="terminal-header">
+                <div class="terminal-dots">
+                    <span class="dot-red"></span>
+                    <span class="dot-yellow"></span>
+                    <span class="dot-green"></span>
+                </div>
+                <span class="terminal-title">rishwik@systems-node:~</span>
+                <button id="closeTerminalBtn" class="terminal-close">&times;</button>
+            </div>
+            <div class="terminal-body" id="terminalOutput">
+                <p class="term-line">System initialized [v3.5.0-ADVANCED]. Type <span class="term-hl">help</span> for commands. (Use TAB to auto-complete & UP/DOWN for history)</p>
+            </div>
+            <div class="terminal-input-bar">
+                <span class="term-prompt">rishwik$&nbsp;</span>
+                <input type="text" id="terminalInput" placeholder="type command..." autocomplete="off" />
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 AMULURU RISHWIK | CYBERNETIC_PORTFOLIO_SYSTEMS</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

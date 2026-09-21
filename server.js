@@ -10,12 +10,11 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Support large payloads for images and files
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Persistent storage directory for Render & Local development
+// Persistent storage directory for Render & Local
 const DATA_DIR = process.env.RENDER ? '/opt/render/project/src' : __dirname;
 try {
     if (!fs.existsSync(DATA_DIR)) {
@@ -39,7 +38,6 @@ function loadData(file, defaultVal) {
         const data = fs.readFileSync(file, 'utf8');
         return JSON.parse(data);
     } catch (e) {
-        console.error(`Error loading ${file}:`, e);
         return defaultVal;
     }
 }
@@ -48,7 +46,7 @@ function saveData(file, data) {
     try {
         fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
     } catch (e) {
-        console.error(`Critical error saving ${file}:`, e);
+        console.error(`Storage write error for ${file}:`, e);
     }
 }
 
@@ -65,7 +63,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Authentication APIs
 app.post('/api/signup', async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -182,7 +179,6 @@ io.on('connection', (socket) => {
 
         io.to(channel).emit('update_active_users', Array.from(activeUsers[channel]));
 
-        // Load complete message and file history for this channel permanently
         let messagesObj = loadData(MESSAGES_FILE, {});
         socket.emit('load_history', messagesObj[channel] || []);
     });
@@ -218,14 +214,13 @@ io.on('connection', (socket) => {
         const newMsg = {
             username,
             text: text || '',
-            file: file || null, // Stores base64 attachments permanently
+            file: file || null,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
         messagesObj[channel].push(newMsg);
-        saveData(MESSAGES_FILE, messagesObj); // Permanently saved to disk storage
+        saveData(MESSAGES_FILE, messagesObj);
 
-        // Broadcast to all users instantly
         io.to(channel).emit('chat_message', newMsg);
     });
 
@@ -242,8 +237,6 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`StudyCord running on port ${PORT}`);
-    
-    // Continuous uptime keeper
     setInterval(() => {
         const url = process.env.RENDER_EXTERNAL_URL;
         if (url) {

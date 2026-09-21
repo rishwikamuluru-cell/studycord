@@ -20,65 +20,48 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
 
-        /* Smooth Glassmorphism Auth Screen */
-        #auth-container { position: fixed; inset: 0; background: radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.2) 0%, transparent 40%), radial-gradient(circle at 90% 90%, rgba(236, 72, 153, 0.2) 0%, transparent 40%), var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .auth-box { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(24px); border: 1px solid var(--border); padding: 45px 38px; border-radius: 28px; width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 18px; transform: translateY(0); transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        #auth-container { position: fixed; inset: 0; background: radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.2) 0%, transparent 40%), radial-gradient(circle at 90% 90%, rgba(236, 72, 153, 0.2) 0%, transparent 40%), var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .auth-box { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(24px); border: 1px solid var(--border); padding: 45px 38px; border-radius: 28px; width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 18px; }
         .auth-box h2 { color: #fff; text-align: center; font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .auth-box p { color: var(--text-muted); font-size: 0.92rem; text-align: center; margin-top: -10px; }
-        
         .auth-box input { background: rgba(0,0,0,0.5); border: 1px solid var(--border); padding: 15px 18px; border-radius: 14px; color: #fff; outline: none; transition: 0.25s; font-size: 1rem; }
         .auth-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25); }
-        
         .auth-box button { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 15px; border-radius: 14px; font-weight: 700; cursor: pointer; font-size: 1.05rem; transition: 0.25s; box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4); }
-        .auth-box button:hover { opacity: 0.95; transform: translateY(-2px); box-shadow: 0 12px 30px rgba(99, 102, 241, 0.6); }
-        
-        .switch-auth { text-align: center; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
-        .switch-auth:hover { color: #fff; }
+        .auth-box button:hover { opacity: 0.95; transform: translateY(-2px); }
+        .switch-auth { text-align: center; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; }
         .switch-auth span { color: #c084fc; font-weight: 600; }
         .forgot-link { text-align: right; font-size: 0.85rem; color: #c084fc; cursor: pointer; margin-top: -6px; }
         .forgot-link:hover { text-decoration: underline; }
 
-        /* Main Workspace App Grid */
-        #app-container { display: none; width: 100%; height: 100%; animation: fadeIn 0.4s ease; }
-
-        /* Left Sidebar */
+        #app-container { display: none; width: 100%; height: 100%; }
         .sidebar { width: 280px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid var(--border); }
         .sidebar-header { padding: 24px 20px; font-size: 1.3rem; font-weight: 900; color: #ffffff; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .user-tag { font-size: 0.75rem; color: #e2e8f0; background: rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 20px; font-weight: 600; border: 1px solid var(--border); }
-
         .toolbar { padding: 14px 20px 0 20px; display: flex; gap: 8px; align-items: center; }
-        .tool-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.2s; flex: 1; text-align: center; }
+        .tool-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; flex: 1; text-align: center; }
         .tool-btn:hover { background: rgba(255,255,255,0.1); color: white; }
         .tool-btn.active { background: #059669; border-color: #10b981; color: white; }
 
         .section-header { padding: 20px 20px 8px 20px; font-size: 0.72rem; font-weight: 800; color: #64748b; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 1.2px; }
-        .add-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #c084fc; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .add-btn:hover { background: var(--primary); color: #fff; border-color: transparent; }
+        .add-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #c084fc; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+        .add-btn:hover { background: var(--primary); color: #fff; }
 
         .channel-list { padding: 6px 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 5px; }
-        .channel { padding: 12px 14px; border-radius: 12px; color: var(--text-muted); font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .channel { padding: 12px 14px; border-radius: 12px; color: var(--text-muted); font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .channel:hover { background-color: rgba(255,255,255,0.04); color: #fff; }
         .channel.active { background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25)); color: #e879f9; border: 1px solid rgba(99, 102, 241, 0.4); font-weight: 600; }
 
-        /* Chat Workspace */
         .chat-container { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-main); position: relative; }
         .chat-header { padding: 20px 28px; background-color: var(--bg-sidebar); border-bottom: 1px solid var(--border); font-weight: 700; font-size: 1.2rem; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
-        .logout-btn { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: 0.2s; }
+        .logout-btn { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
         .logout-btn:hover { background: #ef4444; color: white; }
 
-        /* Messages Feed with Right/Left Alignment */
         .messages-box { flex: 1; padding: 28px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
-        
-        .msg-row { display: flex; flex-direction: column; width: 100%; animation: slideUp 0.2s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .msg-row { display: flex; flex-direction: column; width: 100%; }
         .msg-row.me { align-items: flex-end; }
         .msg-row.other { align-items: flex-start; }
 
-        .msg-bubble { padding: 14px 18px; border-radius: 20px; max-width: 65%; word-break: break-word; box-shadow: 0 4px 20px rgba(0,0,0,0.3); position: relative; }
-        
+        .msg-bubble { padding: 14px 18px; border-radius: 20px; max-width: 65%; word-break: break-word; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
         .msg-row.me .msg-bubble { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; border-bottom-right-radius: 4px; }
         .msg-row.me .msg-user { display: none; }
         .msg-row.me .msg-time { color: rgba(255,255,255,0.75); text-align: right; }
@@ -89,30 +72,24 @@
 
         .msg-text { font-size: 0.98rem; line-height: 1.5; }
         .msg-time { font-size: 0.68rem; margin-top: 6px; display: block; font-weight: 500; }
-        
         .msg-bubble img { max-width: 100%; border-radius: 12px; margin-top: 10px; display: block; border: 1px solid rgba(255,255,255,0.15); }
         .msg-bubble a { color: #60a5fa; text-decoration: none; display: inline-block; margin-top: 6px; font-weight: 600; font-size: 0.9rem; }
-        .msg-bubble a:hover { text-decoration: underline; }
 
-        /* Typing indicator */
         .typing-indicator { padding: 6px 28px; font-size: 0.8rem; color: #a855f7; font-style: italic; height: 24px; display: none; align-items: center; background: rgba(139, 92, 246, 0.05); }
 
-        /* Right Active Members Panel */
         .members-sidebar { width: 220px; background-color: var(--bg-sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
         .members-header { padding: 20px; font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 1px solid var(--border); }
         .members-list { padding: 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
         .member-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; padding: 8px 10px; border-radius: 8px; color: var(--text-main); background: rgba(255,255,255,0.02); }
         .status-dot { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
 
-        /* Modern Input Bar */
         .input-form { padding: 20px 28px; background-color: var(--bg-sidebar); display: flex; gap: 14px; align-items: center; border-top: 1px solid var(--border); }
-        .file-label { background: var(--bg-panel); color: var(--text-muted); width: 48px; height: 48px; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; border: 1px solid var(--border); transition: 0.2s; }
-        .file-label:hover { background: var(--primary); color: white; border-color: transparent; }
+        .file-label { background: var(--bg-panel); color: var(--text-muted); width: 48px; height: 48px; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; border: 1px solid var(--border); }
+        .file-label:hover { background: var(--primary); color: white; }
         #file-input { display: none; }
-        #message-input { flex: 1; background: var(--bg-main); border: 1px solid var(--border); padding: 14px 20px; border-radius: 14px; color: #fff; outline: none; font-size: 0.98rem; transition: 0.25s; }
+        #message-input { flex: 1; background: var(--bg-main); border: 1px solid var(--border); padding: 14px 20px; border-radius: 14px; color: #fff; outline: none; font-size: 0.98rem; }
         #message-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); }
-        .input-form button[type="submit"] { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 0 28px; height: 48px; border-radius: 14px; font-weight: 700; cursor: pointer; transition: 0.25s; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
-        .input-form button[type="submit"]:hover { opacity: 0.95; transform: scale(1.02); }
+        .input-form button[type="submit"] { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 0 28px; height: 48px; border-radius: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
 
         .error-msg { color: #f87171; font-size: 0.85rem; text-align: center; }
         .success-msg { color: #34d399; font-size: 0.85rem; text-align: center; }
@@ -120,7 +97,6 @@
 </head>
 <body>
 
-    <!-- Auth / Password Reset Flow -->
     <div id="auth-container">
         <div class="auth-box">
             <h2 id="auth-title">StudyCord</h2>
@@ -143,7 +119,6 @@
         </div>
     </div>
 
-    <!-- Main App Workspace -->
     <div id="app-container">
         <div class="sidebar">
             <div class="sidebar-header">
@@ -211,7 +186,6 @@
             document.documentElement.style.setProperty('--secondary', t.secondary);
         }
 
-        // Persistent Session Check on Refresh
         const savedUser = localStorage.getItem('studycord_user');
         if (savedUser) {
             try {

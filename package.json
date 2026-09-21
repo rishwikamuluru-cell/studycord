@@ -1,7 +1,7 @@
 {
   "name": "studycord",
   "version": "3.0.0",
-  "description": "Next-Gen Enterprise Chat Platform",
+  "description": "Elite Real-Time Chat Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

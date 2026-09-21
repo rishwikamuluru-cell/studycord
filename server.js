@@ -10,17 +10,19 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.json({ limit: '25mb' }));
+// Support large payloads for images and files
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Safe persistent storage path for Render cloud
+// Persistent storage directory for Render & Local development
 const DATA_DIR = process.env.RENDER ? '/opt/render/project/src' : __dirname;
 try {
     if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
     }
 } catch (e) {
-    console.error("Directory creation notice:", e);
+    console.error("Directory check error:", e);
 }
 
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
@@ -37,6 +39,7 @@ function loadData(file, defaultVal) {
         const data = fs.readFileSync(file, 'utf8');
         return JSON.parse(data);
     } catch (e) {
+        console.error(`Error loading ${file}:`, e);
         return defaultVal;
     }
 }
@@ -45,11 +48,11 @@ function saveData(file, data) {
     try {
         fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
     } catch (e) {
-        console.error("Storage write error:", e);
+        console.error(`Critical error saving ${file}:`, e);
     }
 }
 
-// Initialize files safely
+// Initialize files on startup
 loadData(USERS_FILE, []);
 loadData(CHANNELS_FILE, ['general-lounge', 'announcements', 'study-hall']);
 loadData(MESSAGES_FILE, { 'general-lounge': [] });
@@ -62,6 +65,7 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Authentication APIs
 app.post('/api/signup', async (req, res) => {
     try {
         const { username, email, password } = req.body;
@@ -124,7 +128,6 @@ app.post('/api/forgot-password', async (req, res) => {
             });
             res.json({ success: true, message: 'Verification code sent to your email.' });
         } catch (mailErr) {
-            // Fallback: Prints code directly to Render logs so you can always see it instantly
             console.log(`\n================================`);
             console.log(`[VERIFICATION CODE FOR ${email}]: ${verificationCode}`);
             console.log(`================================\n`);
@@ -179,8 +182,9 @@ io.on('connection', (socket) => {
 
         io.to(channel).emit('update_active_users', Array.from(activeUsers[channel]));
 
+        // Load complete message and file history for this channel permanently
         let messagesObj = loadData(MESSAGES_FILE, {});
-        socket.emit('load_history', (messagesObj[channel] || []).slice(-100));
+        socket.emit('load_history', messagesObj[channel] || []);
     });
 
     socket.on('typing', ({ channel, username }) => {
@@ -197,6 +201,9 @@ io.on('connection', (socket) => {
         if (!channels.includes(clean)) {
             channels.push(clean);
             saveData(CHANNELS_FILE, channels);
+            let messagesObj = loadData(MESSAGES_FILE, {});
+            if (!messagesObj[clean]) messagesObj[clean] = [];
+            saveData(MESSAGES_FILE, messagesObj);
             io.emit('load_channels', channels);
         }
     });
@@ -211,12 +218,14 @@ io.on('connection', (socket) => {
         const newMsg = {
             username,
             text: text || '',
-            file: file || null,
+            file: file || null, // Stores base64 attachments permanently
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
         messagesObj[channel].push(newMsg);
-        saveData(MESSAGES_FILE, messagesObj);
+        saveData(MESSAGES_FILE, messagesObj); // Permanently saved to disk storage
+
+        // Broadcast to all users instantly
         io.to(channel).emit('chat_message', newMsg);
     });
 
@@ -232,9 +241,9 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`StudyCord server running on port ${PORT}`);
+    console.log(`StudyCord running on port ${PORT}`);
     
-    // Self-ping every 8 minutes to keep server active
+    // Continuous uptime keeper
     setInterval(() => {
         const url = process.env.RENDER_EXTERNAL_URL;
         if (url) {

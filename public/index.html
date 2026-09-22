@@ -156,10 +156,10 @@
         </div>
     </div>
 
-    <!-- Socket.io client script linked to your live Render backend URL -->
-    <script src="https://your-backend-app.onrender.com/socket.io/socket.io.js"></script>
+    <!-- Automatic relative socket connection linking seamlessly to your Render backend -->
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const BACKEND_URL = "https://your-backend-app.onrender.com";
+        const BACKEND_URL = window.location.origin;
 
         let authState = 'login';
         let currentUser = null;

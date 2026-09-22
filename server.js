@@ -21,6 +21,14 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Serve static frontend files from the 'public' folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Root route handler to fix Cannot GET / error
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Absolute path persistence for Render (survives restarts/refreshes)
 const DATA_DIR = process.env.RENDER ? '/opt/render/project/src' : __dirname;
 try {

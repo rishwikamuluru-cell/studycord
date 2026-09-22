@@ -17,46 +17,41 @@
             --text-muted: #9ca3af;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
 
-        #auth-container { position: fixed; inset: 0; background: radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.2) 0%, transparent 40%), radial-gradient(circle at 90% 90%, rgba(236, 72, 153, 0.2) 0%, transparent 40%), var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        #auth-container { position: fixed; inset: 0; background: radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.2) 0%, transparent 40%), var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .auth-box { background: rgba(17, 24, 39, 0.85); backdrop-filter: blur(24px); border: 1px solid var(--border); padding: 45px 38px; border-radius: 28px; width: 420px; box-shadow: 0 25px 60px rgba(0,0,0,0.8); display: flex; flex-direction: column; gap: 18px; }
         .auth-box h2 { color: #fff; text-align: center; font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .auth-box p { color: var(--text-muted); font-size: 0.92rem; text-align: center; margin-top: -10px; }
-        .auth-box input { background: rgba(0,0,0,0.5); border: 1px solid var(--border); padding: 15px 18px; border-radius: 14px; color: #fff; outline: none; transition: 0.25s; font-size: 1rem; }
+        .auth-box input { background: rgba(0,0,0,0.5); border: 1px solid var(--border); padding: 15px 18px; border-radius: 14px; color: #fff; outline: none; font-size: 1rem; }
         .auth-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25); }
-        .auth-box button { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 15px; border-radius: 14px; font-weight: 700; cursor: pointer; font-size: 1.05rem; transition: 0.25s; box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4); }
-        .auth-box button:hover { opacity: 0.95; transform: translateY(-2px); }
+        .auth-box button { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; padding: 15px; border-radius: 14px; font-weight: 700; cursor: pointer; font-size: 1.05rem; box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4); }
         .switch-auth { text-align: center; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; }
         .switch-auth span { color: #c084fc; font-weight: 600; }
         .forgot-link { text-align: right; font-size: 0.85rem; color: #c084fc; cursor: pointer; margin-top: -6px; }
-        .forgot-link:hover { text-decoration: underline; }
 
         #app-container { display: none; width: 100%; height: 100%; }
         .sidebar { width: 280px; background-color: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid var(--border); }
         .sidebar-header { padding: 24px 20px; font-size: 1.3rem; font-weight: 900; color: #ffffff; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .user-tag { font-size: 0.75rem; color: #e2e8f0; background: rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 20px; font-weight: 600; border: 1px solid var(--border); }
-        .toolbar { padding: 14px 20px 0 20px; display: flex; gap: 8px; align-items: center; }
+        .user-tag { font-size: 0.75rem; color: #e2e8f0; background: rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 20px; font-weight: 600; }
+        .toolbar { padding: 14px 20px 0 20px; display: flex; gap: 8px; }
         .tool-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 600; cursor: pointer; flex: 1; text-align: center; }
-        .tool-btn:hover { background: rgba(255,255,255,0.1); color: white; }
         .tool-btn.active { background: #059669; border-color: #10b981; color: white; }
 
-        .section-header { padding: 20px 20px 8px 20px; font-size: 0.72rem; font-weight: 800; color: #64748b; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 1.2px; }
+        .section-header { padding: 20px 20px 8px 20px; font-size: 0.72rem; font-weight: 800; color: #64748b; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; }
         .add-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #c084fc; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
-        .add-btn:hover { background: var(--primary); color: #fff; }
-
         .channel-list { padding: 6px 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 5px; }
         .channel { padding: 12px 14px; border-radius: 12px; color: var(--text-muted); font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .channel:hover { background-color: rgba(255,255,255,0.04); color: #fff; }
-        .channel.active { background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25)); color: #e879f9; border: 1px solid rgba(99, 102, 241, 0.4); font-weight: 600; }
+        .channel.active { background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25)); color: #e879f9; border: 1px solid rgba(99, 102, 241, 0.4); }
 
         .chat-container { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-main); position: relative; }
         .chat-header { padding: 20px 28px; background-color: var(--bg-sidebar); border-bottom: 1px solid var(--border); font-weight: 700; font-size: 1.2rem; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
         .logout-btn { background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.25); padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
         .logout-btn:hover { background: #ef4444; color: white; }
 
-        .messages-box { flex: 1; padding: 28px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
+        .messages-box { flex: 1; padding: 28px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
         .msg-row { display: flex; flex-direction: column; width: 100%; }
         .msg-row.me { align-items: flex-end; }
         .msg-row.other { align-items: flex-start; }
@@ -78,7 +73,7 @@
         .typing-indicator { padding: 6px 28px; font-size: 0.8rem; color: #a855f7; font-style: italic; height: 24px; display: none; align-items: center; background: rgba(139, 92, 246, 0.05); }
 
         .members-sidebar { width: 220px; background-color: var(--bg-sidebar); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
-        .members-header { padding: 20px; font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1.2px; border-bottom: 1px solid var(--border); }
+        .members-header { padding: 20px; font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; border-bottom: 1px solid var(--border); }
         .members-list { padding: 12px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
         .member-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; padding: 8px 10px; border-radius: 8px; color: var(--text-main); background: rgba(255,255,255,0.02); }
         .status-dot { width: 8px; height: 8px; background-color: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981; }
@@ -161,8 +156,11 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.io client script linked to your live Render backend URL -->
+    <script src="https://your-backend-app.onrender.com/socket.io/socket.io.js"></script>
     <script>
+        const BACKEND_URL = "https://your-backend-app.onrender.com";
+
         let authState = 'login';
         let currentUser = null;
         let currentChannel = 'general-lounge';
@@ -256,7 +254,7 @@
             if (authState === 'forgot') {
                 if (!email) { errorDiv.innerText = 'Please enter your email address.'; return; }
                 try {
-                    const res = await fetch('/api/forgot-password', {
+                    const res = await fetch(`${BACKEND_URL}/api/forgot-password`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email })
                     });
@@ -265,7 +263,7 @@
                         resetEmailTarget = email;
                         authState = 'reset';
                         document.getElementById('auth-title').innerText = 'Enter Security Code';
-                        document.getElementById('auth-subtitle').innerText = 'Check your email for the 6-digit verification code.';
+                        document.getElementById('auth-subtitle').innerText = 'Check your email or Render logs for the 6-digit code.';
                         document.getElementById('auth-email').style.display = 'none';
                         document.getElementById('auth-password').style.display = 'block';
                         document.getElementById('auth-password').value = '';
@@ -291,7 +289,7 @@
                 if (!code || !newPassword) { errorDiv.innerText = 'Please fill in all fields.'; return; }
 
                 try {
-                    const res = await fetch('/api/reset-password', {
+                    const res = await fetch(`${BACKEND_URL}/api/reset-password`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: resetEmailTarget, code, newPassword })
                     });
@@ -304,7 +302,7 @@
                 return;
             }
 
-            const endpoint = authState === 'login' ? '/api/login' : '/api/signup';
+            const endpoint = authState === 'login' ? `${BACKEND_URL}/api/login` : `${BACKEND_URL}/api/signup`;
             const payload = authState === 'login' ? { email, password } : { username, email, password };
 
             try {
@@ -341,7 +339,7 @@
             document.getElementById('app-container').style.display = 'flex';
             document.getElementById('current-username-display').innerText = currentUser.username;
 
-            socket = io();
+            socket = io(BACKEND_URL);
             const chatForm = document.getElementById('chatForm');
             const messageInput = document.getElementById('message-input');
             const messagesBox = document.getElementById('messagesBox');

@@ -4,45 +4,30 @@ const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
 const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+    cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// Serve static frontend files from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Root route handler to fix Cannot GET / error
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Absolute path persistence for Render (survives restarts/refreshes)
 const DATA_DIR = process.env.RENDER ? '/opt/render/project/src' : __dirname;
-try {
-    if (!fs.existsSync(DATA_DIR)) {
-        fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-} catch (e) {
-    console.error("Directory initialization error:", e);
-}
+try { if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) {}
 
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const CHANNELS_FILE = path.join(DATA_DIR, 'channels.json');
+const GUILDS_FILE = path.join(DATA_DIR, 'guilds.json');
 const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
-const RESET_CODES = {};
 
 function loadData(file, defaultVal) {
     try {
@@ -50,139 +35,59 @@ function loadData(file, defaultVal) {
             fs.writeFileSync(file, JSON.stringify(defaultVal, null, 2), 'utf8');
             return defaultVal;
         }
-        const data = fs.readFileSync(file, 'utf8');
-        return JSON.parse(data);
-    } catch (e) {
-        console.error(`Error loading ${file}:`, e);
-        return defaultVal;
-    }
+        return JSON.parse(fs.readFileSync(file, 'utf8'));
+    } catch (e) { return defaultVal; }
 }
 
 function saveData(file, data) {
-    try {
-        fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
-    } catch (e) {
-        console.error(`Critical error saving ${file}:`, e);
-    }
+    try { fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); } catch (e) {}
 }
 
-// Initialize files securely on startup
-loadData(USERS_FILE, []);
-loadData(CHANNELS_FILE, ['general-lounge', 'announcements', 'study-hall']);
-loadData(MESSAGES_FILE, { 'general-lounge': [] });
-
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER || '',
-        pass: process.env.EMAIL_PASS || ''
+// Initialize Default Discord-like Guild (Server) if empty
+const defaultGuilds = loadData(GUILDS_FILE, [
+    {
+        id: 'guild-1',
+        name: 'StudyCord Official',
+        icon: 'SC',
+        channels: [
+            { id: 'c-gen', name: 'general', type: 'text' },
+            { id: 'c-code', name: 'coding-help', type: 'text' },
+            { id: 'c-voice', name: 'Lounge Voice', type: 'voice' }
+        ]
     }
-});
+]);
+loadData(USERS_FILE, []);
+loadData(MESSAGES_FILE, { 'c-gen': [], 'c-code': [] });
 
-// SIGNUP: Normalized email to prevent case-sensitivity login failures
 app.post('/api/signup', async (req, res) => {
     try {
-        const username = req.body.username ? req.body.username.trim() : '';
-        const email = req.body.email ? req.body.email.trim().toLowerCase() : '';
-        const password = req.body.password ? req.body.password.trim() : '';
-
-        if (!username || !email || !password) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
+        const username = req.body.username?.trim() || '';
+        const email = req.body.email?.trim().toLowerCase() || '';
+        const password = req.body.password?.trim() || '';
+        if (!username || !email || !password) return res.status(400).json({ error: 'All fields required' });
 
         let users = loadData(USERS_FILE, []);
-        if (users.find(u => u.email === email)) {
-            return res.status(400).json({ error: 'Email already registered. Please log in.' });
-        }
+        if (users.find(u => u.email === email)) return res.status(400).json({ error: 'Email already registered' });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = { id: Date.now(), username, email, password: hashedPassword };
+        const newUser = { id: Date.now(), username, email, password: hashedPassword, roles: ['Member'] };
         users.push(newUser);
         saveData(USERS_FILE, users);
-
         res.json({ success: true, user: { id: newUser.id, username, email } });
-    } catch (e) {
-        res.status(500).json({ error: 'Server error during signup' });
-    }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
-// LOGIN: Normalized email lookup
 app.post('/api/login', async (req, res) => {
     try {
-        const email = req.body.email ? req.body.email.trim().toLowerCase() : '';
-        const password = req.body.password ? req.body.password.trim() : '';
-
-        if (!email || !password) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
-
+        const email = req.body.email?.trim().toLowerCase() || '';
+        const password = req.body.password?.trim() || '';
         let users = loadData(USERS_FILE, []);
         const user = users.find(u => u.email === email);
-
-        if (!user) {
-            return res.status(401).json({ error: 'Account not found. Please check your email or sign up.' });
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ error: 'Invalid password. Please try again.' });
-        }
-
         res.json({ success: true, user: { id: user.id, username: user.username, email: user.email } });
-    } catch (e) {
-        res.status(500).json({ error: 'Server error during login' });
-    }
-});
-
-app.post('/api/forgot-password', async (req, res) => {
-    try {
-        const email = req.body.email ? req.body.email.trim().toLowerCase() : '';
-        let users = loadData(USERS_FILE, []);
-        const user = users.find(u => u.email === email);
-        
-        if (!user) return res.status(404).json({ error: 'No account found with this email' });
-
-        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-        RESET_CODES[email] = { code: verificationCode, expires: Date.now() + 15 * 60 * 1000 };
-
-        try {
-            await transporter.sendMail({
-                from: '"StudyCord Security" <no-reply@studycord.com>',
-                to: email,
-                subject: 'Your StudyCord Verification Code',
-                text: `Your security code is: ${verificationCode}`
-            });
-            res.json({ success: true, message: 'Verification code sent to your email.' });
-        } catch (mailErr) {
-            console.log(`[VERIFICATION CODE FOR ${email}]: ${verificationCode}`);
-            res.json({ success: true, message: 'Code generated! (Check Render logs if email service is unconfigured).' });
-        }
-    } catch (e) {
-        res.status(500).json({ error: 'Server error processing password recovery' });
-    }
-});
-
-app.post('/api/reset-password', async (req, res) => {
-    try {
-        const email = req.body.email ? req.body.email.trim().toLowerCase() : '';
-        const { code, newPassword } = req.body;
-        const record = RESET_CODES[email];
-        
-        if (!record || record.code !== code || Date.now() > record.expires) {
-            return res.status(400).json({ error: 'Invalid or expired verification code.' });
-        }
-
-        let users = loadData(USERS_FILE, []);
-        const idx = users.findIndex(u => u.email === email);
-        if (idx === -1) return res.status(404).json({ error: 'User account not found.' });
-
-        users[idx].password = await bcrypt.hash(newPassword, 10);
-        saveData(USERS_FILE, users);
-        delete RESET_CODES[email];
-        res.json({ success: true, message: 'Password successfully updated.' });
-    } catch (e) {
-        res.status(500).json({ error: 'Server error resetting password' });
-    }
+    } catch (e) { res.status(500).json({ error: 'Server error' }); }
 });
 
 app.get('/ping', (req, res) => res.send('OK'));
@@ -190,55 +95,46 @@ app.get('/ping', (req, res) => res.send('OK'));
 const activeUsers = {};
 
 io.on('connection', (socket) => {
-    let channels = loadData(CHANNELS_FILE, ['general-lounge']);
-    socket.emit('load_channels', channels);
+    socket.emit('load_guilds', loadData(GUILDS_FILE, []));
 
-    socket.on('join_channel', ({ channel, username }) => {
-        socket.join(channel);
+    socket.on('join_channel', ({ channelId, username }) => {
+        socket.join(channelId);
         socket.username = username;
-        socket.currentChannel = channel;
+        socket.currentChannel = channelId;
 
-        if (!activeUsers[channel]) activeUsers[channel] = new Set();
-        activeUsers[channel].add(username);
-        io.to(channel).emit('update_active_users', Array.from(activeUsers[channel]));
-
-        let messagesObj = loadData(MESSAGES_FILE, {});
-        socket.emit('load_history', messagesObj[channel] || []);
-    });
-
-    socket.on('typing', ({ channel, username }) => socket.to(channel).emit('display_typing', username));
-    socket.on('stop_typing', ({ channel }) => socket.to(channel).emit('hide_typing'));
-
-    socket.on('create_channel', (name) => {
-        let clean = name.toLowerCase().replace(/[^a-z0-9-_]/g, '-');
-        let channels = loadData(CHANNELS_FILE, ['general-lounge']);
-        if (!channels.includes(clean)) {
-            channels.push(clean);
-            saveData(CHANNELS_FILE, channels);
-            let messagesObj = loadData(MESSAGES_FILE, {});
-            if (!messagesObj[clean]) messagesObj[clean] = [];
-            saveData(MESSAGES_FILE, messagesObj);
-            io.emit('load_channels', channels);
-        }
-    });
-
-    socket.on('chat_message', (data) => {
-        const { channel, username, text, file } = data;
-        if (!channel || !username) return;
+        if (!activeUsers[channelId]) activeUsers[channelId] = new Set();
+        activeUsers[channelId].add(username);
+        io.to(channelId).emit('update_active_users', Array.from(activeUsers[channelId]));
 
         let messagesObj = loadData(MESSAGES_FILE, {});
-        if (!messagesObj[channel]) messagesObj[channel] = [];
+        socket.emit('load_history', messagesObj[channelId] || []);
+    });
+
+    socket.on('chat_message', ({ channelId, username, text, file }) => {
+        if (!channelId || !username) return;
+        let messagesObj = loadData(MESSAGES_FILE, {});
+        if (!messagesObj[channelId]) messagesObj[channelId] = [];
 
         const newMsg = {
+            id: Date.now(),
             username,
             text: text || '',
             file: file || null,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
-
-        messagesObj[channel].push(newMsg);
+        messagesObj[channelId].push(newMsg);
         saveData(MESSAGES_FILE, messagesObj);
-        io.to(channel).emit('chat_message', newMsg);
+        io.to(channelId).emit('chat_message', newMsg);
+    });
+
+    // Discord Voice Channel WebRTC Signaling Handlers
+    socket.on('voice_join', ({ channelId, username }) => {
+        socket.join(`voice-${channelId}`);
+        socket.to(`voice-${channelId}`).emit('voice_peer_joined', { socketId: socket.id, username });
+    });
+
+    socket.on('voice_signal', ({ toSocketId, signal, username }) => {
+        io.to(toSocketId).emit('voice_signal', { fromSocketId: socket.id, signal, username });
     });
 
     socket.on('disconnect', () => {
@@ -250,12 +146,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`StudyCord backend running on port ${PORT}`);
-    setInterval(() => {
-        const url = process.env.RENDER_EXTERNAL_URL;
-        if (url) {
-            http.get(`${url}/ping`, (res) => {}).on('error', () => {});
-        }
-    }, 8 * 60 * 1000);
-});
+server.listen(PORT, () => console.log(`Discord-clone backend active on port ${PORT}`));

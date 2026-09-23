@@ -1,7 +1,7 @@
 {
   "name": "studycord-discord-clone",
-  "version": "3.5.0",
-  "description": "Full-stack Discord clone with permanent storage",
+  "version": "4.0.0",
+  "description": "Full Discord clone with WebRTC Voice and Persistent Storage",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

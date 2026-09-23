@@ -39,7 +39,7 @@
         .channel-item.active { background: rgba(255,255,255,0.08); color: #fff; }
 
         .chat-area { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); position: relative; }
-        .chat-topbar { height: 48px; padding: 0 16px; border-bottom: 2px solid #202225; display: flex; align-items: center; font-weight: 700; color: #fff; }
+        .chat-topbar { height: 48px; padding: 0 16px; border-bottom: 2px solid #202225; display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: #fff; }
         .messages-box { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
         
         .message-group { display: flex; gap: 16px; }
@@ -53,13 +53,13 @@
         .chat-input-wrap { padding: 0 16px 24px 16px; }
         .chat-input-box { background: var(--bg-input); border-radius: 8px; padding: 10px 16px; display: flex; align-items: center; }
         .chat-input-box input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 1rem; }
-        .chat-input-box input:disabled { background: transparent; cursor: not-allowed; }
 
         .members-rail { width: 240px; background-color: var(--bg-channels); padding: 16px; overflow-y: auto; }
         .member-category { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
         .member-row { display: flex; align-items: center; gap: 10px; padding: 6px; }
         .member-avatar-small { width: 32px; height: 32px; border-radius: 50%; background: #7289da; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; color: white; position: relative; }
         .online-badge { width: 10px; height: 10px; background: var(--success); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-channels); }
+        .voice-badge { background: var(--success); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; display: none; }
     </style>
 </head>
 <body>
@@ -88,10 +88,13 @@
         </div>
 
         <div class="chat-area">
-            <div class="chat-topbar" id="currentChannelTitle"># general</div>
+            <div class="chat-topbar">
+                <span id="currentChannelTitle"># general</span>
+                <span class="voice-badge" id="voiceActiveBadge">🎙️ Connected to Voice</span>
+            </div>
             <div class="messages-box" id="messagesBox"></div>
             
-            <div class="chat-input-wrap">
+            <div class="chat-input-wrap" id="chatInputWrap">
                 <form class="chat-input-box" id="chatForm">
                     <input type="text" id="messageInput" placeholder="Message #general" autocomplete="off">
                 </form>
@@ -104,6 +107,9 @@
         </div>
     </div>
 
+    <!-- Hidden audio container for remote peers -->
+    <div id="audioContainer" style="display:none;"></div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const BACKEND_URL = window.location.origin;
@@ -111,6 +117,10 @@
         let currentUser = null;
         let currentChannelId = 'c-gen';
         let isSignup = false;
+
+        let localStream = null;
+        const peers = {};
+        const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
         function toggleMode() {
             isSignup = !isSignup;
@@ -157,14 +167,27 @@
                     div.innerHTML = ch.type === 'voice' ? `🔊 ${ch.name}` : `# ${ch.name}`;
                     div.onclick = () => {
                         currentChannelId = ch.id;
-                        document.getElementById('currentChannelTitle').innerText = ch.type === 'voice' ? `🔊 ${ch.name}` : `# ${ch.name}`;
-                        const msgInput = document.getElementById('messageInput');
-                        msgInput.placeholder = ch.type === 'voice' ? `Voice Channel (Read-only)` : `Message #${ch.name}`;
-                        msgInput.disabled = ch.type === 'voice';
-                        
+                        const titleEl = document.getElementById('currentChannelTitle');
+                        const inputWrap = document.getElementById('chatInputWrap');
+                        const voiceBadge = document.getElementById('voiceActiveBadge');
+
+                        if (ch.type === 'voice') {
+                            titleEl.innerText = `🔊 ${ch.name}`;
+                            inputWrap.style.display = 'none';
+                            voiceBadge.style.display = 'block';
+                            document.getElementById('messagesBox').innerHTML = '<div style="color:var(--text-muted); text-align:center; margin-top:40px;">🎙️ Connected to Voice Channel. Speak freely!</div>';
+                            startVoiceChat(ch.id);
+                        } else {
+                            titleEl.innerText = `# ${ch.name}`;
+                            inputWrap.style.display = 'block';
+                            voiceBadge.style.display = 'none';
+                            document.getElementById('messageInput').placeholder = `Message #${ch.name}`;
+                            stopVoiceChat();
+                            socket.emit('join_channel', { channelId: currentChannelId, username: currentUser.username });
+                        }
+
                         document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
                         div.classList.add('active');
-                        socket.emit('join_channel', { channelId: currentChannelId, username: currentUser.username });
                     };
                     cList.appendChild(div);
                 });
@@ -173,13 +196,14 @@
             socket.emit('join_channel', { channelId: currentChannelId, username: currentUser.username });
 
             socket.on('load_history', (messages) => {
+                if (currentChannelId === 'c-voice') return;
                 const box = document.getElementById('messagesBox');
                 box.innerHTML = '';
                 messages.forEach(msg => appendMessage(msg));
             });
 
             socket.on('chat_message', (msg) => {
-                appendMessage(msg);
+                if (msg.channelId === currentChannelId) appendMessage(msg);
             });
 
             socket.on('update_active_users', (users) => {
@@ -195,10 +219,31 @@
                 });
             });
 
+            // WebRTC Signaling handlers
+            socket.on('voice_peer_joined', async ({ socketId }) => {
+                const pc = createPeerConnection(socketId);
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                socket.emit('voice_signal', { toSocketId: socketId, signal: { type: 'offer', sdp: pc.localDescription } });
+            });
+
+            socket.on('voice_signal', async ({ fromSocketId, signal }) => {
+                let pc = peers[fromSocketId] || createPeerConnection(fromSocketId);
+                if (signal.type === 'offer') {
+                    await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+                    socket.emit('voice_signal', { toSocketId: fromSocketId, signal: { type: 'answer', sdp: pc.localDescription } });
+                } else if (signal.type === 'answer') {
+                    await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+                } else if (signal.candidate) {
+                    await pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+                }
+            });
+
             document.getElementById('chatForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const input = document.getElementById('messageInput');
-                if (input.disabled) return;
                 const text = input.value.trim();
                 if (!text) return;
 
@@ -209,6 +254,51 @@
                 });
                 input.value = '';
             });
+        }
+
+        async function startVoiceChat(channelId) {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                socket.emit('voice_join', { channelId, username: currentUser.username });
+            } catch (err) {
+                alert('Microphone permission is required to use voice channels.');
+            }
+        }
+
+        function stopVoiceChat() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            Object.keys(peers).forEach(id => {
+                peers[id].close();
+                delete peers[id];
+            });
+            document.getElementById('audioContainer').innerHTML = '';
+        }
+
+        function createPeerConnection(socketId) {
+            const pc = new RTCPeerConnection(rtcConfig);
+            peers[socketId] = pc;
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+            }
+
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    socket.emit('voice_signal', { toSocketId: socketId, signal: { candidate: event.candidate } });
+                }
+            };
+
+            pc.ontrack = (event) => {
+                const audio = document.createElement('audio');
+                audio.srcObject = event.streams[0];
+                audio.autoplay = true;
+                document.getElementById('audioContainer').appendChild(audio);
+            };
+
+            return pc;
         }
 
         function appendMessage(msg) {

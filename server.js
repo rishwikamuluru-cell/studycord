@@ -126,6 +126,16 @@ io.on('connection', (socket) => {
         io.to(channelId).emit('chat_message', newMsg);
     });
 
+    // WebRTC Voice Signaling Exchange
+    socket.on('voice_join', ({ channelId, username }) => {
+        socket.join(`voice-${channelId}`);
+        socket.to(`voice-${channelId}`).emit('voice_peer_joined', { socketId: socket.id, username });
+    });
+
+    socket.on('voice_signal', ({ toSocketId, signal }) => {
+        io.to(toSocketId).emit('voice_signal', { fromSocketId: socket.id, signal });
+    });
+
     socket.on('disconnect', () => {
         if (socket.currentChannel && socket.username && activeUsers[socket.currentChannel]) {
             activeUsers[socket.currentChannel].delete(socket.username);

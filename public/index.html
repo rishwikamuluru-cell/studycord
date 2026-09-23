@@ -20,31 +20,33 @@
         body { background-color: var(--bg-chat); color: var(--text-normal); height: 100vh; display: flex; overflow: hidden; }
 
         #auth-container { position: fixed; inset: 0; background: #2f3136; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .auth-card { background: #36393f; padding: 32px; border-radius: 8px; width: 400px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 16px; }
+        .auth-card { background: #36393f; padding: 32px; border-radius: 8px; width: 400px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 16px; }
         .auth-card h2 { color: #fff; text-align: center; }
         .auth-card input { background: #18191c; border: none; padding: 12px; border-radius: 4px; color: #fff; outline: none; }
         .auth-card button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: 600; cursor: pointer; }
         .auth-card button:hover { background: var(--accent-hover); }
 
-        #app-container { display: none; width: 100%; height: 100%; }
-        .server-rail { width: 72px; background-color: var(--bg-servers); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; }
+        #app-container { display: none; width: 100%; height: 100%; display: flex; }
+        
+        /* DESKTOP LAYOUT (Default 3-column) */
+        .server-rail { width: 72px; background-color: var(--bg-servers); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; flex-shrink: 0; }
         .server-icon { width: 48px; height: 48px; border-radius: 50%; background: #36393f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; }
         .server-icon.active { border-radius: 16px; background: var(--accent); }
 
-        .channels-sidebar { width: 240px; background-color: var(--bg-channels); display: flex; flex-direction: column; }
+        .channels-sidebar { width: 240px; background-color: var(--bg-channels); display: flex; flex-direction: column; flex-shrink: 0; }
         .server-header-bar { height: 48px; padding: 0 16px; font-weight: 700; border-bottom: 2px solid #202225; display: flex; align-items: center; color: #fff; }
         .channels-list { flex: 1; padding: 12px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
         .channel-item { padding: 8px 10px; border-radius: 4px; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
         .channel-item:hover { background: rgba(255,255,255,0.04); color: var(--text-normal); }
         .channel-item.active { background: rgba(255,255,255,0.08); color: #fff; }
 
-        .chat-area { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); position: relative; }
+        .chat-area { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); position: relative; min-width: 0; }
         .chat-topbar { height: 48px; padding: 0 16px; border-bottom: 2px solid #202225; display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: #fff; }
         .messages-box { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
         
         .message-group { display: flex; gap: 16px; }
         .msg-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; flex-shrink: 0; }
-        .msg-content { display: flex; flex-direction: column; gap: 4px; }
+        .msg-content { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         .msg-header { display: flex; gap: 8px; align-items: baseline; }
         .msg-username { font-weight: 600; color: #fff; }
         .msg-timestamp { font-size: 0.75rem; color: var(--text-muted); }
@@ -54,12 +56,21 @@
         .chat-input-box { background: var(--bg-input); border-radius: 8px; padding: 10px 16px; display: flex; align-items: center; }
         .chat-input-box input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 1rem; }
 
-        .members-rail { width: 240px; background-color: var(--bg-channels); padding: 16px; overflow-y: auto; }
+        .members-rail { width: 240px; background-color: var(--bg-channels); padding: 16px; overflow-y: auto; flex-shrink: 0; }
         .member-category { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
         .member-row { display: flex; align-items: center; gap: 10px; padding: 6px; }
         .member-avatar-small { width: 32px; height: 32px; border-radius: 50%; background: #7289da; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; color: white; position: relative; }
         .online-badge { width: 10px; height: 10px; background: var(--success); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-channels); }
         .voice-badge { background: var(--success); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; display: none; }
+
+        /* MOBILE RESPONSIVE MEDIA QUERY (Screens under 768px wide) */
+        @media (max-width: 768px) {
+            .server-rail { display: none; } /* Hide server rail on mobile */
+            .members-rail { display: none; } /* Hide online member list on mobile to maximize chat space */
+            .channels-sidebar { width: 140px; } /* Slim down channel list on mobile */
+            .chat-topbar { font-size: 0.9rem; padding: 0 10px; }
+            .messages-box { padding: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -77,20 +88,20 @@
         </div>
     </div>
 
-    <div id="app-container">
+    <div id="app-container" style="display: none;">
         <div class="server-rail">
             <div class="server-icon active" title="StudyCord Official">SC</div>
         </div>
 
         <div class="channels-sidebar">
-            <div class="server-header-bar">StudyCord Official</div>
+            <div class="server-header-bar">StudyCord</div>
             <div class="channels-list" id="channelList"></div>
         </div>
 
         <div class="chat-area">
             <div class="chat-topbar">
                 <span id="currentChannelTitle"># general</span>
-                <span class="voice-badge" id="voiceActiveBadge">🎙️ Connected to Voice</span>
+                <span class="voice-badge" id="voiceActiveBadge">🎙️ Voice Active</span>
             </div>
             <div class="messages-box" id="messagesBox"></div>
             
@@ -107,7 +118,6 @@
         </div>
     </div>
 
-    <!-- Hidden audio container for remote peers -->
     <div id="audioContainer" style="display:none;"></div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -219,7 +229,6 @@
                 });
             });
 
-            // WebRTC Signaling handlers
             socket.on('voice_peer_joined', async ({ socketId }) => {
                 const pc = createPeerConnection(socketId);
                 const offer = await pc.createOffer();

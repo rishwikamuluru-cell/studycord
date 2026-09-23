@@ -16,61 +16,58 @@
             --accent-hover: #4752c4;
             --success: #3ba55d;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
         body { background-color: var(--bg-chat); color: var(--text-normal); height: 100vh; display: flex; overflow: hidden; }
 
-        /* AUTH SCREEN */
         #auth-container { position: fixed; inset: 0; background: #2f3136; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .auth-card { background: #36393f; padding: 32px; border-radius: 8px; width: 440px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 16px; }
-        .auth-card h2 { color: #fff; text-align: center; font-size: 1.5rem; }
+        .auth-card { background: #36393f; padding: 32px; border-radius: 8px; width: 400px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 16px; }
+        .auth-card h2 { color: #fff; text-align: center; }
         .auth-card input { background: #18191c; border: none; padding: 12px; border-radius: 4px; color: #fff; outline: none; }
         .auth-card button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: 600; cursor: pointer; }
         .auth-card button:hover { background: var(--accent-hover); }
 
-        /* DISCORD LAYOUT */
-        #app-container { display: none; width: 100%; height: 100%; display: none; }
-        .server-rail { width: 72px; background-color: var(--bg-servers); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; border-right: 1px solid #202225; }
-        .server-icon { width: 48px; height: 48px; border-radius: 50%; background: #36393f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .server-icon:hover, .server-icon.active { border-radius: 16px; background: var(--accent); }
+        #app-container { display: none; width: 100%; height: 100%; }
+        .server-rail { width: 72px; background-color: var(--bg-servers); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; }
+        .server-icon { width: 48px; height: 48px; border-radius: 50%; background: #36393f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; }
+        .server-icon.active { border-radius: 16px; background: var(--accent); }
 
         .channels-sidebar { width: 240px; background-color: var(--bg-channels); display: flex; flex-direction: column; }
-        .server-header-bar { height: 48px; padding: 0 16px; font-weight: 700; border-bottom: 2px solid #202225; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .server-header-bar { height: 48px; padding: 0 16px; font-weight: 700; border-bottom: 2px solid #202225; display: flex; align-items: center; color: #fff; }
         .channels-list { flex: 1; padding: 12px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
         .channel-item { padding: 8px 10px; border-radius: 4px; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
         .channel-item:hover { background: rgba(255,255,255,0.04); color: var(--text-normal); }
         .channel-item.active { background: rgba(255,255,255,0.08); color: #fff; }
 
         .chat-area { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); position: relative; }
-        .chat-topbar { height: 48px; padding: 0 16px; border-bottom: 2px solid #202225; display: flex; align-items: center; font-weight: 700; gap: 8px; }
+        .chat-topbar { height: 48px; padding: 0 16px; border-bottom: 2px solid #202225; display: flex; align-items: center; font-weight: 700; color: #fff; }
         .messages-box { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
         
         .message-group { display: flex; gap: 16px; }
-        .msg-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; }
+        .msg-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; flex-shrink: 0; }
         .msg-content { display: flex; flex-direction: column; gap: 4px; }
         .msg-header { display: flex; gap: 8px; align-items: baseline; }
         .msg-username { font-weight: 600; color: #fff; }
         .msg-timestamp { font-size: 0.75rem; color: var(--text-muted); }
-        .msg-text { color: var(--text-normal); font-size: 0.95rem; line-height: 1.4; }
+        .msg-text { color: var(--text-normal); font-size: 0.95rem; line-height: 1.4; word-break: break-word; }
 
         .chat-input-wrap { padding: 0 16px 24px 16px; }
         .chat-input-box { background: var(--bg-input); border-radius: 8px; padding: 10px 16px; display: flex; align-items: center; }
         .chat-input-box input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 1rem; }
+        .chat-input-box input:disabled { background: transparent; cursor: not-allowed; }
 
         .members-rail { width: 240px; background-color: var(--bg-channels); padding: 16px; overflow-y: auto; }
         .member-category { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
-        .member-row { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 4px; cursor: pointer; }
-        .member-row:hover { background: rgba(255,255,255,0.04); }
+        .member-row { display: flex; align-items: center; gap: 10px; padding: 6px; }
         .member-avatar-small { width: 32px; height: 32px; border-radius: 50%; background: #7289da; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; color: white; position: relative; }
         .online-badge { width: 10px; height: 10px; background: var(--success); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-channels); }
     </style>
 </head>
 <body>
 
-    <!-- AUTHENTICATION SCREEN -->
     <div id="auth-container">
         <div class="auth-card">
             <h2 id="auth-title">Welcome back!</h2>
-            <p style="color: var(--text-muted); text-align: center; font-size: 0.9rem;">We're so excited to see you again!</p>
+            <p style="color: var(--text-muted); text-align: center; font-size: 0.9rem;">Sign in to continue to StudyCord</p>
             <input type="email" id="auth-email" placeholder="Email">
             <input type="password" id="auth-password" placeholder="Password">
             <button onclick="handleAuth()">Log In</button>
@@ -80,24 +77,18 @@
         </div>
     </div>
 
-    <!-- MAIN DISCORD APP UI -->
-    <div id="app-container" style="display: none;">
-        <!-- Server Icon Rail -->
-        <div class="server-rail" id="serverRail">
+    <div id="app-container">
+        <div class="server-rail">
             <div class="server-icon active" title="StudyCord Official">SC</div>
         </div>
 
-        <!-- Channel Sidebar -->
         <div class="channels-sidebar">
-            <div class="server-header-bar" id="serverNameDisplay">StudyCord Official</div>
+            <div class="server-header-bar">StudyCord Official</div>
             <div class="channels-list" id="channelList"></div>
         </div>
 
-        <!-- Chat Area -->
         <div class="chat-area">
-            <div class="chat-topbar">
-                <span id="currentChannelTitle"># general</span>
-            </div>
+            <div class="chat-topbar" id="currentChannelTitle"># general</div>
             <div class="messages-box" id="messagesBox"></div>
             
             <div class="chat-input-wrap">
@@ -107,7 +98,6 @@
             </div>
         </div>
 
-        <!-- Members Sidebar -->
         <div class="members-rail">
             <div class="member-category">Online — <span id="memberCount">0</span></div>
             <div id="membersList"></div>
@@ -131,7 +121,6 @@
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value.trim();
             const endpoint = isSignup ? '/api/signup' : '/api/login';
-            
             const payload = isSignup ? { username: email.split('@')[0], email, password } : { email, password };
 
             try {
@@ -168,7 +157,11 @@
                     div.innerHTML = ch.type === 'voice' ? `🔊 ${ch.name}` : `# ${ch.name}`;
                     div.onclick = () => {
                         currentChannelId = ch.id;
-                        document.getElementById('currentChannelTitle').innerText = `# ${ch.name}`;
+                        document.getElementById('currentChannelTitle').innerText = ch.type === 'voice' ? `🔊 ${ch.name}` : `# ${ch.name}`;
+                        const msgInput = document.getElementById('messageInput');
+                        msgInput.placeholder = ch.type === 'voice' ? `Voice Channel (Read-only)` : `Message #${ch.name}`;
+                        msgInput.disabled = ch.type === 'voice';
+                        
                         document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
                         div.classList.add('active');
                         socket.emit('join_channel', { channelId: currentChannelId, username: currentUser.username });
@@ -205,6 +198,7 @@
             document.getElementById('chatForm').addEventListener('submit', (e) => {
                 e.preventDefault();
                 const input = document.getElementById('messageInput');
+                if (input.disabled) return;
                 const text = input.value.trim();
                 if (!text) return;
 

@@ -1,7 +1,7 @@
 {
-  "name": "studycord",
-  "version": "3.0.0",
-  "description": "Elite Real-Time Chat Platform",
+  "name": "studycord-discord-clone",
+  "version": "3.5.0",
+  "description": "Full-stack Discord clone with permanent storage",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -10,7 +10,6 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "nodemailer": "^6.9.13",
     "socket.io": "^4.7.2"
   }
 }

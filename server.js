@@ -22,6 +22,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Absolute storage path for Render persistence (survives restarts)[cite: 3]
 const DATA_DIR = process.env.RENDER ? '/opt/render/project/src' : __dirname;
 try { if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) {}
 
@@ -43,8 +44,7 @@ function saveData(file, data) {
     try { fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8'); } catch (e) {}
 }
 
-// Initialize Default Discord-like Guild (Server) if empty
-const defaultGuilds = loadData(GUILDS_FILE, [
+loadData(GUILDS_FILE, [
     {
         id: 'guild-1',
         name: 'StudyCord Official',
@@ -70,7 +70,7 @@ app.post('/api/signup', async (req, res) => {
         if (users.find(u => u.email === email)) return res.status(400).json({ error: 'Email already registered' });
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = { id: Date.now(), username, email, password: hashedPassword, roles: ['Member'] };
+        const newUser = { id: Date.now(), username, email, password: hashedPassword };
         users.push(newUser);
         saveData(USERS_FILE, users);
         res.json({ success: true, user: { id: newUser.id, username, email } });
@@ -110,31 +110,20 @@ io.on('connection', (socket) => {
         socket.emit('load_history', messagesObj[channelId] || []);
     });
 
-    socket.on('chat_message', ({ channelId, username, text, file }) => {
-        if (!channelId || !username) return;
+    socket.on('chat_message', ({ channelId, username, text }) => {
+        if (!channelId || !username || !text) return;
         let messagesObj = loadData(MESSAGES_FILE, {});
         if (!messagesObj[channelId]) messagesObj[channelId] = [];
 
         const newMsg = {
             id: Date.now(),
             username,
-            text: text || '',
-            file: file || null,
+            text,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         messagesObj[channelId].push(newMsg);
         saveData(MESSAGES_FILE, messagesObj);
         io.to(channelId).emit('chat_message', newMsg);
-    });
-
-    // Discord Voice Channel WebRTC Signaling Handlers
-    socket.on('voice_join', ({ channelId, username }) => {
-        socket.join(`voice-${channelId}`);
-        socket.to(`voice-${channelId}`).emit('voice_peer_joined', { socketId: socket.id, username });
-    });
-
-    socket.on('voice_signal', ({ toSocketId, signal, username }) => {
-        io.to(toSocketId).emit('voice_signal', { fromSocketId: socket.id, signal, username });
     });
 
     socket.on('disconnect', () => {
@@ -146,4 +135,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Discord-clone backend active on port ${PORT}`));
+server.listen(PORT, () => console.log(`Discord clone running on port ${PORT}`));

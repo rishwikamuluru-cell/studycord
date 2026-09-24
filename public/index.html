@@ -125,6 +125,9 @@
         </div>
     </div>
 
+    <!-- Container holding audio streams routed through the loud media speaker -->
+    <div id="audioContainer" style="display:none;"></div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const BACKEND_URL = window.location.origin;
@@ -318,6 +321,7 @@
                 delete peers[id];
             });
             document.getElementById('videoGrid').innerHTML = '';
+            document.getElementById('audioContainer').innerHTML = '';
         }
 
         function createPeerConnection(socketId, username) {
@@ -337,6 +341,17 @@
             pc.ontrack = (event) => {
                 let remoteStream = event.streams[0];
                 renderVideoBox('remoteVideo_' + socketId, username || 'Peer', remoteStream, false);
+
+                let audioCtx = document.getElementById('audio_elem_' + socketId);
+                if (!audioCtx) {
+                    audioCtx = document.createElement('audio');
+                    audioCtx.id = 'audio_elem_' + socketId;
+                    audioCtx.srcObject = remoteStream;
+                    audioCtx.autoplay = true;
+                    audioCtx.playsInline = true;
+                    audioCtx.volume = 1.0;
+                    document.getElementById('audioContainer').appendChild(audioCtx);
+                }
             };
 
             return pc;
@@ -352,7 +367,9 @@
                 box.innerHTML = `<video autoplay playsinline ${isMuted ? 'muted' : ''}></video><div class="video-label">${labelText}</div>`;
                 grid.appendChild(box);
             }
-            box.querySelector('video').srcObject = stream;
+            let videoEl = box.querySelector('video');
+            videoEl.srcObject = stream;
+            videoEl.volume = 1.0;
         }
 
         function appendMessage(msg) {

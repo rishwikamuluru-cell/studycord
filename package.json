@@ -1,7 +1,7 @@
 {
   "name": "studycord-discord-clone",
-  "version": "4.5.0",
-  "description": "Full Discord clone with persistent storage, video calls, and screen share",
+  "version": "5.0.0",
+  "description": "Full Discord clone with persistent storage, video calls, screen share, and mobile speaker routing",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

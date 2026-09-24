@@ -3,75 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Clone - StudyCord</title>
+    <title>Discord - StudyCord Workspace</title>
     <style>
         :root {
             --bg-servers: #202225;
             --bg-channels: #2f3136;
             --bg-chat: #36393f;
             --bg-input: #40444b;
+            --bg-input-hover: #4f545c;
             --text-normal: #dcddde;
             --text-muted: #8e9297;
+            --text-header: #ffffff;
             --accent: #5865f2;
             --accent-hover: #4752c4;
             --success: #3ba55d;
+            --danger: #ed4245;
+            --danger-hover: #c03537;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; user-select: none; -webkit-user-select: none; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; user-select: none; -webkit-user-select: none; }
         body { background-color: var(--bg-chat); color: var(--text-normal); height: 100vh; display: flex; overflow: hidden; }
 
-        #auth-container { position: fixed; inset: 0; background: #2f3136; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .auth-card { background: #36393f; padding: 32px; border-radius: 8px; width: 400px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 16px; }
-        .auth-card h2 { color: #fff; text-align: center; }
-        .auth-card input { background: #18191c; border: none; padding: 12px; border-radius: 4px; color: #fff; outline: none; user-select: text; -webkit-user-select: text; }
-        .auth-card button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        .auth-card button:hover { background: var(--accent-hover); }
+        /* CUSTOM SCROLLBARS */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-channels); }
+        ::-webkit-scrollbar-thumb { background: #202225; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #18191c; }
 
+        /* AUTH SCREEN - MODERN DISCORD STYLE */
+        #auth-container { position: fixed; inset: 0; background: linear-gradient(135deg, #202225 0%, #36393f 100%); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .auth-card { background: #36393f; padding: 40px 32px; border-radius: 8px; width: 480px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 20px; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .auth-card h2 { color: var(--text-header); text-align: center; font-size: 1.5rem; font-weight: 700; }
+        .auth-card p { color: var(--text-muted); text-align: center; font-size: 0.9rem; margin-top: -12px; }
+        .auth-field { display: flex; flex-direction: column; gap: 6px; }
+        .auth-field label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        .auth-card input { background: #18191c; border: 1px solid transparent; padding: 12px; border-radius: 4px; color: #fff; outline: none; font-size: 1rem; transition: border-color 0.2s; user-select: text; -webkit-user-select: text; }
+        .auth-card input:focus { border-color: var(--accent); }
+        .auth-card button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.1s; font-size: 1rem; margin-top: 4px; }
+        .auth-card button:hover { background: var(--accent-hover); }
+        .auth-card button:active { transform: scale(0.99); }
+        .auth-switch { text-align: left; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; }
+        .auth-switch span { color: #00b0f4; font-weight: 500; }
+        .auth-switch span:hover { text-decoration: underline; }
+
+        /* APP LAYOUT */
         #app-container { display: none; width: 100%; height: 100%; display: flex; }
         
+        /* SERVER RAIL (LEFTMOST) */
         .server-rail { width: 72px; background-color: var(--bg-servers); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; flex-shrink: 0; }
-        .server-icon { width: 48px; height: 48px; border-radius: 50%; background: #36393f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .server-icon:hover, .server-icon.active { border-radius: 16px; background: var(--accent); }
+        .server-icon { width: 48px; height: 48px; border-radius: 50%; background: #36393f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; }
+        .server-icon::before { content: ''; position: absolute; left: -12px; width: 8px; height: 10px; background: white; border-radius: 0 4px 4px 0; transform: scaleY(0); transition: transform 0.2s; }
+        .server-icon:hover { border-radius: 16px; background: var(--accent); }
+        .server-icon:hover::before { transform: scaleY(0.4); }
+        .server-icon.active { border-radius: 16px; background: var(--accent); }
+        .server-icon.active::before { transform: scaleY(1); }
 
-        .channels-sidebar { width: 240px; background-color: var(--bg-channels); display: flex; flex-direction: column; flex-shrink: 0; }
-        .server-header-bar { height: 48px; padding: 0 16px; font-weight: 700; border-bottom: 2px solid #202225; display: flex; align-items: center; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .channels-list { flex: 1; padding: 12px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
-        .channel-item { padding: 8px 10px; border-radius: 4px; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        /* CHANNELS SIDEBAR */
+        .channels-sidebar { width: 240px; background-color: var(--bg-channels); display: flex; flex-direction: column; flex-shrink: 0; box-shadow: inset -1px 0 0 rgba(0,0,0,0.2); }
+        .server-header-bar { height: 48px; padding: 0 16px; font-weight: 700; border-bottom: 2px solid #202225; display: flex; align-items: center; color: var(--text-header); font-size: 0.95rem; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .channels-list { flex: 1; padding: 16px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+        .channel-category-title { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; padding: 0 8px 6px 8px; letter-spacing: 0.5px; }
+        .channel-item { padding: 8px 10px; border-radius: 4px; color: var(--text-muted); cursor: pointer; font-size: 0.92rem; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: background 0.15s, color 0.15s; margin-bottom: 2px; }
         .channel-item:hover { background: rgba(255,255,255,0.04); color: var(--text-normal); }
-        .channel-item.active { background: rgba(255,255,255,0.08); color: #fff; }
+        .channel-item.active { background: rgba(255,255,255,0.08); color: var(--text-header); font-weight: 600; }
 
+        /* CHAT / VIDEO AREA */
         .chat-area { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); position: relative; min-width: 0; }
-        .chat-topbar { height: 48px; padding: 0 16px; border-bottom: 2px solid #202225; display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .messages-box { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; user-select: text; -webkit-user-select: text; }
+        .chat-topbar { height: 48px; padding: 0 16px; border-bottom: 2px solid #202225; display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: var(--text-header); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .messages-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; user-select: text; -webkit-user-select: text; }
         
-        .message-group { display: flex; gap: 16px; }
-        .msg-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; flex-shrink: 0; }
+        .message-group { display: flex; gap: 16px; align-items: flex-start; }
+        .msg-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #5865f2, #7289da); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .msg-content { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         .msg-header { display: flex; gap: 8px; align-items: baseline; }
-        .msg-username { font-weight: 600; color: #fff; }
-        .msg-timestamp { font-size: 0.75rem; color: var(--text-muted); }
+        .msg-username { font-weight: 600; color: var(--text-header); font-size: 0.95rem; }
+        .msg-timestamp { font-size: 0.7rem; color: var(--text-muted); }
         .msg-text { color: var(--text-normal); font-size: 0.95rem; line-height: 1.4; word-break: break-word; }
 
-        .chat-input-wrap { padding: 0 16px 24px 16px; }
-        .chat-input-box { background: var(--bg-input); border-radius: 8px; padding: 10px 16px; display: flex; align-items: center; }
-        .chat-input-box input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 1rem; user-select: text; -webkit-user-select: text; }
+        .chat-input-wrap { padding: 0 24px 24px 24px; }
+        .chat-input-box { background: var(--bg-input); border-radius: 8px; padding: 11px 16px; display: flex; align-items: center; transition: background 0.2s; }
+        .chat-input-box:focus-within { background: var(--bg-input-hover); }
+        .chat-input-box input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 0.95rem; user-select: text; -webkit-user-select: text; }
 
+        /* MEMBERS RAIL (RIGHT) */
         .members-rail { width: 240px; background-color: var(--bg-channels); padding: 16px; overflow-y: auto; flex-shrink: 0; }
-        .member-category { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
-        .member-row { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 4px; cursor: pointer; }
-        .member-row:hover { background: rgba(255,255,255,0.02); }
-        .member-avatar-small { width: 32px; height: 32px; border-radius: 50%; background: #7289da; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; color: white; position: relative; }
-        .online-badge { width: 10px; height: 10px; background: var(--success); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-channels); }
-        .voice-badge { background: var(--success); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; display: none; }
+        .member-category { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .member-row { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 4px; cursor: pointer; transition: background 0.15s; }
+        .member-row:hover { background: rgba(255,255,255,0.04); }
+        .member-avatar-small { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #7289da, #99aab5); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; color: white; position: relative; flex-shrink: 0; }
+        .online-badge { width: 10px; height: 10px; background: var(--success); border-radius: 50%; position: absolute; bottom: -1px; right: -1px; border: 2px solid var(--bg-channels); }
+        .voice-badge { background: var(--success); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: none; box-shadow: 0 2px 5px rgba(59,165,93,0.3); }
 
-        #videoGrid { display: none; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 20px; flex: 1; overflow-y: auto; background: #18191c; }
-        .video-box { position: relative; background: #2f3136; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; display: flex; justify-content: center; align-items: center; border: 2px solid #202225; }
+        /* VIDEO CALL GRID */
+        #videoGrid { display: none; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; padding: 20px; flex: 1; overflow-y: auto; background: #18191c; }
+        .video-box { position: relative; background: #2f3136; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
         .video-box video { width: 100%; height: 100%; object-fit: cover; }
-        .video-label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+        .video-label { position: absolute; bottom: 12px; left: 12px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; }
+
+        /* SCREEN SHARE BUTTON */
+        #screenShareBtn { background: #4f545c; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s; }
+        #screenShareBtn:hover { background: #60646d; }
 
         @media (max-width: 768px) {
             .server-rail { display: none; }
             .members-rail { display: none; }
-            .channels-sidebar { width: 130px; }
+            .channels-sidebar { width: 140px; }
         }
     </style>
 </head>
@@ -79,13 +116,25 @@
 
     <div id="auth-container">
         <div class="auth-card">
-            <h2 id="auth-title">Welcome back!</h2>
-            <p style="color: var(--text-muted); text-align: center; font-size: 0.9rem;">Sign in to continue to StudyCord</p>
-            <input type="email" id="auth-email" placeholder="Email">
-            <input type="password" id="auth-password" placeholder="Password">
+            <div>
+                <h2 id="auth-title">Welcome back!</h2>
+                <p>We're so excited to see you again!</p>
+            </div>
+            
+            <div class="auth-field">
+                <label>Email</label>
+                <input type="email" id="auth-email" placeholder="name@domain.com">
+            </div>
+
+            <div class="auth-field">
+                <label>Password</label>
+                <input type="password" id="auth-password" placeholder="••••••••">
+            </div>
+
             <button onclick="handleAuth()">Log In</button>
-            <div style="text-align: center; font-size: 0.85rem; color: var(--text-muted); cursor: pointer;" onclick="toggleMode()">
-                Need an account? <span style="color: var(--accent);">Sign up</span>
+            
+            <div class="auth-switch" onclick="toggleMode()">
+                Need an account? <span id="switch-text">Register</span>
             </div>
         </div>
     </div>
@@ -104,8 +153,8 @@
             <div class="chat-topbar">
                 <span id="currentChannelTitle"># general</span>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <button id="screenShareBtn" onclick="toggleScreenShare()" style="display: none; background: #4f545c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">🖥️ Share Screen</button>
-                    <span class="voice-badge" id="voiceActiveBadge">🎥 Video Call Active</span>
+                    <button id="screenShareBtn" onclick="toggleScreenShare()" style="display: none;">🖥️ Share Screen</button>
+                    <span class="voice-badge" id="voiceActiveBadge">🎥 Connected</span>
                 </div>
             </div>
             
@@ -125,7 +174,6 @@
         </div>
     </div>
 
-    <!-- Container holding audio streams routed through the loud media speaker -->
     <div id="audioContainer" style="display:none;"></div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -143,6 +191,7 @@
         function toggleMode() {
             isSignup = !isSignup;
             document.getElementById('auth-title').innerText = isSignup ? 'Create an account' : 'Welcome back!';
+            document.getElementById('switch-text').innerText = isSignup ? 'Log In' : 'Register';
         }
 
         async function handleAuth() {
@@ -178,11 +227,13 @@
 
             socket.on('load_guilds', (guilds) => {
                 const cList = document.getElementById('channelList');
-                cList.innerHTML = '';
+                cList.innerHTML = `
+                    <div class="channel-category-title">Text Channels</div>
+                `;
                 guilds[0].channels.forEach(ch => {
                     const div = document.createElement('div');
                     div.className = `channel-item ${ch.id === currentChannelId ? 'active' : ''}`;
-                    div.innerHTML = ch.type === 'voice' ? `📹 ${ch.name}` : `# ${ch.name}`;
+                    div.innerHTML = ch.type === 'voice' ? `🔊 ${ch.name}` : `# ${ch.name}`;
                     div.onclick = () => {
                         currentChannelId = ch.id;
                         const titleEl = document.getElementById('currentChannelTitle');
@@ -193,7 +244,7 @@
                         const videoGrid = document.getElementById('videoGrid');
 
                         if (ch.type === 'voice') {
-                            titleEl.innerText = `📹 ${ch.name}`;
+                            titleEl.innerText = `🔊 ${ch.name}`;
                             inputWrap.style.display = 'none';
                             voiceBadge.style.display = 'block';
                             screenBtn.style.display = 'block';
@@ -240,7 +291,7 @@
                     mList.innerHTML += `
                         <div class="member-row">
                             <div class="member-avatar-small">${u[0].toUpperCase()}<div class="online-badge"></div></div>
-                            <span style="font-size: 0.9rem; font-weight: 500;">${u}</span>
+                            <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-normal);">${u}</span>
                         </div>`;
                 });
             });

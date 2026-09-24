@@ -16,32 +16,32 @@
             --accent-hover: #4752c4;
             --success: #3ba55d;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; user-select: none; -webkit-user-select: none; }
         body { background-color: var(--bg-chat); color: var(--text-normal); height: 100vh; display: flex; overflow: hidden; }
 
         #auth-container { position: fixed; inset: 0; background: #2f3136; display: flex; justify-content: center; align-items: center; z-index: 1000; }
         .auth-card { background: #36393f; padding: 32px; border-radius: 8px; width: 400px; max-width: 90%; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 16px; }
         .auth-card h2 { color: #fff; text-align: center; }
-        .auth-card input { background: #18191c; border: none; padding: 12px; border-radius: 4px; color: #fff; outline: none; }
-        .auth-card button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        .auth-card input { background: #18191c; border: none; padding: 12px; border-radius: 4px; color: #fff; outline: none; user-select: text; -webkit-user-select: text; }
+        .auth-card button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
         .auth-card button:hover { background: var(--accent-hover); }
 
         #app-container { display: none; width: 100%; height: 100%; display: flex; }
         
         .server-rail { width: 72px; background-color: var(--bg-servers); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; flex-shrink: 0; }
-        .server-icon { width: 48px; height: 48px; border-radius: 50%; background: #36393f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; }
-        .server-icon.active { border-radius: 16px; background: var(--accent); }
+        .server-icon { width: 48px; height: 48px; border-radius: 50%; background: #36393f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .server-icon:hover, .server-icon.active { border-radius: 16px; background: var(--accent); }
 
         .channels-sidebar { width: 240px; background-color: var(--bg-channels); display: flex; flex-direction: column; flex-shrink: 0; }
-        .server-header-bar { height: 48px; padding: 0 16px; font-weight: 700; border-bottom: 2px solid #202225; display: flex; align-items: center; color: #fff; }
+        .server-header-bar { height: 48px; padding: 0 16px; font-weight: 700; border-bottom: 2px solid #202225; display: flex; align-items: center; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .channels-list { flex: 1; padding: 12px 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
         .channel-item { padding: 8px 10px; border-radius: 4px; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
         .channel-item:hover { background: rgba(255,255,255,0.04); color: var(--text-normal); }
         .channel-item.active { background: rgba(255,255,255,0.08); color: #fff; }
 
         .chat-area { flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); position: relative; min-width: 0; }
-        .chat-topbar { height: 48px; padding: 0 16px; border-bottom: 2px solid #202225; display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: #fff; }
-        .messages-box { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+        .chat-topbar { height: 48px; padding: 0 16px; border-bottom: 2px solid #202225; display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .messages-box { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; user-select: text; -webkit-user-select: text; }
         
         .message-group { display: flex; gap: 16px; }
         .msg-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; flex-shrink: 0; }
@@ -53,11 +53,12 @@
 
         .chat-input-wrap { padding: 0 16px 24px 16px; }
         .chat-input-box { background: var(--bg-input); border-radius: 8px; padding: 10px 16px; display: flex; align-items: center; }
-        .chat-input-box input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 1rem; }
+        .chat-input-box input { flex: 1; background: transparent; border: none; color: #fff; outline: none; font-size: 1rem; user-select: text; -webkit-user-select: text; }
 
         .members-rail { width: 240px; background-color: var(--bg-channels); padding: 16px; overflow-y: auto; flex-shrink: 0; }
         .member-category { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
-        .member-row { display: flex; align-items: center; gap: 10px; padding: 6px; }
+        .member-row { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 4px; cursor: pointer; }
+        .member-row:hover { background: rgba(255,255,255,0.02); }
         .member-avatar-small { width: 32px; height: 32px; border-radius: 50%; background: #7289da; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; color: white; position: relative; }
         .online-badge { width: 10px; height: 10px; background: var(--success); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-channels); }
         .voice-badge { background: var(--success); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; display: none; }

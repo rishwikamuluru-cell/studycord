@@ -126,7 +126,7 @@ io.on('connection', (socket) => {
         io.to(channelId).emit('chat_message', newMsg);
     });
 
-    // WebRTC Voice Signaling Exchange
+    // WebRTC Signaling Exchange for Video/Audio
     socket.on('voice_join', ({ channelId, username }) => {
         socket.join(`voice-${channelId}`);
         socket.to(`voice-${channelId}`).emit('voice_peer_joined', { socketId: socket.id, username });

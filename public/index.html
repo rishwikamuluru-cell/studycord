@@ -28,7 +28,6 @@
 
         #app-container { display: none; width: 100%; height: 100%; display: flex; }
         
-        /* DESKTOP LAYOUT (Default 3-column) */
         .server-rail { width: 72px; background-color: var(--bg-servers); display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px; flex-shrink: 0; }
         .server-icon { width: 48px; height: 48px; border-radius: 50%; background: #36393f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: pointer; }
         .server-icon.active { border-radius: 16px; background: var(--accent); }
@@ -63,13 +62,15 @@
         .online-badge { width: 10px; height: 10px; background: var(--success); border-radius: 50%; position: absolute; bottom: 0; right: 0; border: 2px solid var(--bg-channels); }
         .voice-badge { background: var(--success); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; display: none; }
 
-        /* MOBILE RESPONSIVE MEDIA QUERY (Screens under 768px wide) */
+        #videoGrid { display: none; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 20px; flex: 1; overflow-y: auto; background: #18191c; }
+        .video-box { position: relative; background: #2f3136; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; display: flex; justify-content: center; align-items: center; border: 2px solid #202225; }
+        .video-box video { width: 100%; height: 100%; object-fit: cover; }
+        .video-label { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+
         @media (max-width: 768px) {
-            .server-rail { display: none; } /* Hide server rail on mobile */
-            .members-rail { display: none; } /* Hide online member list on mobile to maximize chat space */
-            .channels-sidebar { width: 140px; } /* Slim down channel list on mobile */
-            .chat-topbar { font-size: 0.9rem; padding: 0 10px; }
-            .messages-box { padding: 10px; }
+            .server-rail { display: none; }
+            .members-rail { display: none; }
+            .channels-sidebar { width: 130px; }
         }
     </style>
 </head>
@@ -101,9 +102,14 @@
         <div class="chat-area">
             <div class="chat-topbar">
                 <span id="currentChannelTitle"># general</span>
-                <span class="voice-badge" id="voiceActiveBadge">🎙️ Voice Active</span>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button id="screenShareBtn" onclick="toggleScreenShare()" style="display: none; background: #4f545c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">🖥️ Share Screen</button>
+                    <span class="voice-badge" id="voiceActiveBadge">🎥 Video Call Active</span>
+                </div>
             </div>
+            
             <div class="messages-box" id="messagesBox"></div>
+            <div id="videoGrid"></div>
             
             <div class="chat-input-wrap" id="chatInputWrap">
                 <form class="chat-input-box" id="chatForm">
@@ -117,8 +123,6 @@
             <div id="membersList"></div>
         </div>
     </div>
-
-    <div id="audioContainer" style="display:none;"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -174,25 +178,33 @@
                 guilds[0].channels.forEach(ch => {
                     const div = document.createElement('div');
                     div.className = `channel-item ${ch.id === currentChannelId ? 'active' : ''}`;
-                    div.innerHTML = ch.type === 'voice' ? `🔊 ${ch.name}` : `# ${ch.name}`;
+                    div.innerHTML = ch.type === 'voice' ? `📹 ${ch.name}` : `# ${ch.name}`;
                     div.onclick = () => {
                         currentChannelId = ch.id;
                         const titleEl = document.getElementById('currentChannelTitle');
                         const inputWrap = document.getElementById('chatInputWrap');
                         const voiceBadge = document.getElementById('voiceActiveBadge');
+                        const screenBtn = document.getElementById('screenShareBtn');
+                        const msgBox = document.getElementById('messagesBox');
+                        const videoGrid = document.getElementById('videoGrid');
 
                         if (ch.type === 'voice') {
-                            titleEl.innerText = `🔊 ${ch.name}`;
+                            titleEl.innerText = `📹 ${ch.name}`;
                             inputWrap.style.display = 'none';
                             voiceBadge.style.display = 'block';
-                            document.getElementById('messagesBox').innerHTML = '<div style="color:var(--text-muted); text-align:center; margin-top:40px;">🎙️ Connected to Voice Channel. Speak freely!</div>';
-                            startVoiceChat(ch.id);
+                            screenBtn.style.display = 'block';
+                            msgBox.style.display = 'none';
+                            videoGrid.style.display = 'grid';
+                            startVideoCall(ch.id);
                         } else {
                             titleEl.innerText = `# ${ch.name}`;
                             inputWrap.style.display = 'block';
                             voiceBadge.style.display = 'none';
+                            screenBtn.style.display = 'none';
+                            msgBox.style.display = 'flex';
+                            videoGrid.style.display = 'none';
                             document.getElementById('messageInput').placeholder = `Message #${ch.name}`;
-                            stopVoiceChat();
+                            stopVideoCall();
                             socket.emit('join_channel', { channelId: currentChannelId, username: currentUser.username });
                         }
 
@@ -229,15 +241,15 @@
                 });
             });
 
-            socket.on('voice_peer_joined', async ({ socketId }) => {
-                const pc = createPeerConnection(socketId);
+            socket.on('voice_peer_joined', async ({ socketId, username }) => {
+                const pc = createPeerConnection(socketId, username);
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
                 socket.emit('voice_signal', { toSocketId: socketId, signal: { type: 'offer', sdp: pc.localDescription } });
             });
 
             socket.on('voice_signal', async ({ fromSocketId, signal }) => {
-                let pc = peers[fromSocketId] || createPeerConnection(fromSocketId);
+                let pc = peers[fromSocketId] || createPeerConnection(fromSocketId, 'Peer');
                 if (signal.type === 'offer') {
                     await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
                     const answer = await pc.createAnswer();
@@ -265,16 +277,37 @@
             });
         }
 
-        async function startVoiceChat(channelId) {
+        async function startVideoCall(channelId) {
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                renderVideoBox('localVideoContainer', currentUser.username + ' (You)', localStream, true);
                 socket.emit('voice_join', { channelId, username: currentUser.username });
             } catch (err) {
-                alert('Microphone permission is required to use voice channels.');
+                alert('Camera and microphone permissions are required for video calls.');
             }
         }
 
-        function stopVoiceChat() {
+        async function toggleScreenShare() {
+            try {
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                const screenTrack = screenStream.getVideoTracks()[0];
+                
+                Object.values(peers).forEach(pc => {
+                    const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+                    if (sender) sender.replaceTrack(screenTrack);
+                });
+
+                renderVideoBox('localVideoContainer', currentUser.username + ' (Screen)', screenStream, true);
+
+                screenTrack.onended = () => {
+                    startVideoCall(currentChannelId);
+                };
+            } catch (err) {
+                console.log("Screen sharing cancelled.");
+            }
+        }
+
+        function stopVideoCall() {
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
                 localStream = null;
@@ -283,10 +316,10 @@
                 peers[id].close();
                 delete peers[id];
             });
-            document.getElementById('audioContainer').innerHTML = '';
+            document.getElementById('videoGrid').innerHTML = '';
         }
 
-        function createPeerConnection(socketId) {
+        function createPeerConnection(socketId, username) {
             const pc = new RTCPeerConnection(rtcConfig);
             peers[socketId] = pc;
 
@@ -301,13 +334,24 @@
             };
 
             pc.ontrack = (event) => {
-                const audio = document.createElement('audio');
-                audio.srcObject = event.streams[0];
-                audio.autoplay = true;
-                document.getElementById('audioContainer').appendChild(audio);
+                let remoteStream = event.streams[0];
+                renderVideoBox('remoteVideo_' + socketId, username || 'Peer', remoteStream, false);
             };
 
             return pc;
+        }
+
+        function renderVideoBox(containerId, labelText, stream, isMuted) {
+            let grid = document.getElementById('videoGrid');
+            let box = document.getElementById(containerId);
+            if (!box) {
+                box = document.createElement('div');
+                box.className = 'video-box';
+                box.id = containerId;
+                box.innerHTML = `<video autoplay playsinline ${isMuted ? 'muted' : ''}></video><div class="video-label">${labelText}</div>`;
+                grid.appendChild(box);
+            }
+            box.querySelector('video').srcObject = stream;
         }
 
         function appendMessage(msg) {
